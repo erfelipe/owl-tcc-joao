@@ -1,0 +1,8 @@
+# Created by https://www.toptal.com/developers/gitignore/api/java-web
+# Edit at https://www.toptal.com/developers/gitignore?templates=java-web
+
+### Java-Web ###
+## ignoring target file
+target/
+
+# End of https://www.toptal.com/developers/gitignore/api/java-web
