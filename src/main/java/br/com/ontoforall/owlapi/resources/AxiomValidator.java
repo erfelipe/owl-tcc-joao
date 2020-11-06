@@ -11,7 +11,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-@Path("axioms")
+@Path("ontologia")
 public class AxiomValidator {
 	
 	public AxiomValidator() {
@@ -20,17 +20,8 @@ public class AxiomValidator {
 	
 	@GET
 	@Produces(MediaType.TEXT_PLAIN)
-	public String isWorking() {
+	public String funciona() {
 		return Boolean.TRUE.toString();	
-	}
-	
-	@GET
-	@Path("teste")
-	@Produces(MediaType.APPLICATION_JSON)
-	public String valid() {
-		ElementosOWL elementos = new ElementosOWL();
-		
-		return elementos.validaOWL("");
 	}
 	
 	@POST
@@ -39,13 +30,21 @@ public class AxiomValidator {
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response validacao(String ontologia) {
 		ElementosOWL elementos = new ElementosOWL();
-		//System.out.println(ontologia);
 		String resp = elementos.validaOWL(ontologia);
-		//return elementos.validaOWL(ontologia);
-		System.out.println("Vai resposta... ");
 		return Response.status(Status.ACCEPTED)
 				.entity(resp)
 				.build();
 	}
 	
+	@POST
+	@Path("formataOWL")
+	@Produces(MediaType.TEXT_PLAIN)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public Response formata(String ontologia) {
+		ElementosOWL elementos = new ElementosOWL();
+		String resp = elementos.formataOWL(ontologia);
+		return Response.status(Status.ACCEPTED)
+				.entity(resp)
+				.build();
+	}
 }
