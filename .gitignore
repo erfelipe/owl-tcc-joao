@@ -5,4 +5,7 @@
 ## ignoring target file
 target/
 
+.DSStore
+
+
 # End of https://www.toptal.com/developers/gitignore/api/java-web

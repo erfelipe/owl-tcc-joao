@@ -32,7 +32,7 @@ public class ElementosOWL {
 
 	}
 
-	public JSONObject geraElementosTeste() {
+	public JSONObject preparaElementos() {
 		
 		JSONObject objOWL = new JSONObject();
 		
@@ -44,24 +44,26 @@ public class ElementosOWL {
 		classes.add("Mulher");
 		
 		axiomas.add("Homem subClassOf (Pessoa)");
-		//axiomas.add("Mulher subClassOf (Pessoa)");
+		axiomas.add("Mulher subClassOf (Pessoa)");
 		
 		objOWL.put("classes", classes);
 		objOWL.put("axiomas", axiomas);
 		
 		String texto = objOWL.toString();
-		System.out.println(texto);
+		//System.out.println(texto);
 		
 		return objOWL;
 	}
 	
-	public String validaOWL() {
+	public String validaOWL(String ontologia) {
 		OWLDataFactory df = OWLManager.getOWLDataFactory();
 
 		Provider shortFormProvider = new Provider();
 		OWLEntityChecker entityChecker = new ShortFormEntityChecker(shortFormProvider);
 
-		JSONObject owl = this.geraElementosTeste();
+		//JSONObject owl2 = this.preparaElementos();
+		//System.out.println(owl2);
+		JSONObject owl = new JSONObject(ontologia);
 
 		/**
 		 * Trabalha se as classes
@@ -74,7 +76,7 @@ public class ElementosOWL {
 		}
 
 		/**
-		 * Trabalha se os axiomas (duvida se posso passar varios axiomas ou apenas um de cada vez
+		 * Trabalha se os axiomas 
 		 */
 		JSONArray axiomas = new JSONArray();
 		axiomas = owl.getJSONArray("axiomas");
@@ -84,11 +86,14 @@ public class ElementosOWL {
 		for (int i = 0; i < axiomas.length(); i++) {
 			parser.setStringToParse(axiomas.getString(i));
 		}
-
-		OWLAxiom axiom = parser.parseAxiom();
-
-		return "Checagem " + axiom.toString();
+		
+		try {
+			OWLAxiom axiom = parser.parseAxiom();
+			return "Axioma válido " + axiom.toString();
+		} catch (Exception e) {
+			return "Axioma inválido: " + e.toString();
+		}
+		
 	}
-	
 	
 }

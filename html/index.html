@@ -1,11 +1,10 @@
 <html>
-<body>
-    <h2>Jersey RESTful Web Application!</h2>
-    <p><a href="webapi/myresource">Jersey resource</a>
-    <p>Visit <a href="http://jersey.java.net">Project Jersey website</a>
-    for more information on Jersey!
-    
-     <button type="button" id="btnValidador" value="Validar axiomas" formmethod="POST"> Validar axioma </button>
+    <head>
+        <meta charset="utf-8" >
+    </head>
+    <body>
+
+        <button type="button" id="btnValidador" value="Validar axiomas" method="POST"> Validar axioma </button>
 
         <script>
             document.getElementById("btnValidador").addEventListener("click", validarAxioma);
@@ -29,5 +28,5 @@
                 xhttp.send(JSON.stringify(data));
             }
         </script>
-</body>
+    </body>
 </html>
