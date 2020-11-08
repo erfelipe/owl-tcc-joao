@@ -12,7 +12,7 @@
             
             function validarAxioma() {
                 var xhttp = new XMLHttpRequest();
-                xhttp.open("POST", "http://localhost:8080/owlapi/webapi/axioms/validacao", true); 
+                xhttp.open("POST", "http://localhost:8080/owlapi/webapi/axioms/valida", true); 
                 xhttp.setRequestHeader("Content-Type", "application/json");
                 xhttp.onreadystatechange = function() {
                     if (this.readyState == 4 && this.status == 202) {

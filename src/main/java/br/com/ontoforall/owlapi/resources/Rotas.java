@@ -12,9 +12,9 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 @Path("ontologia")
-public class AxiomValidator {
+public class Rotas {
 	
-	public AxiomValidator() {
+	public Rotas() {
 		
 	}
 	
@@ -25,7 +25,7 @@ public class AxiomValidator {
 	}
 	
 	@POST
-	@Path("validacao")
+	@Path("valida")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response validacao(String ontologia) {
@@ -37,7 +37,7 @@ public class AxiomValidator {
 	}
 	
 	@POST
-	@Path("formataOWL")
+	@Path("formata")
 	@Produces(MediaType.TEXT_PLAIN)
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response formata(String ontologia) {
