@@ -88,9 +88,9 @@ public class ElementosOWL {
 				parser.setStringToParse(axiomas.getString(i));
 				parser.parseAxiom();
 			}
-			return "Axioma(s) válido(s): " + axiomas.toString();
+			return Boolean.toString(true);
 		} catch (Exception e) {
-			return "Axioma inválido. " + e.toString();
+			return Boolean.toString(false);
 		}
 	}
 	

@@ -25,8 +25,8 @@ public class Rotas {
 	}
 	
 	@POST
-	@Path("valida")
-	@Produces(MediaType.APPLICATION_JSON)
+	@Path("valid")
+	@Produces(MediaType.TEXT_PLAIN)
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response validacao(String ontologia) {
 		ElementosOWL elementos = new ElementosOWL();
@@ -37,7 +37,7 @@ public class Rotas {
 	}
 	
 	@POST
-	@Path("formata")
+	@Path("format")
 	@Produces(MediaType.TEXT_PLAIN)
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response formata(String ontologia) {
