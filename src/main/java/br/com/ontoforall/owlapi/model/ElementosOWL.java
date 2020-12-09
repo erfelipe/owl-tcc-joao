@@ -69,7 +69,7 @@ public class ElementosOWL {
 		 * Trabalha se as classes
 		 */
 		JSONArray classes = new JSONArray();
-		classes = owl.getJSONArray("classes");
+		classes = owl.getJSONArray("ontoclass");
 
 		for (int i = 0; i < classes.length(); i++) {
 			shortFormProvider.add(df.getOWLClass(IRI.create("https://onto4alleditor.com/pt/idDoProjeto/" + classes.get(i))));
@@ -79,7 +79,7 @@ public class ElementosOWL {
 		 * Trabalha se os axiomas 
 		 */
 		JSONArray axiomas = new JSONArray();
-		axiomas = owl.getJSONArray("axiomas");
+		axiomas = owl.getJSONArray("ontoaxioms");
 		ManchesterOWLSyntaxParser parser = OWLManager.createManchesterParser();
 		parser.setOWLEntityChecker(entityChecker);
 		
@@ -98,10 +98,10 @@ public class ElementosOWL {
 	 * String esperada:
 	 * {
 	 *   "id": "https://onto4alleditor.com/pt/idDoProjeto",
-	 *   "formatosaida": "OWL",
-	 *   "classes": ["Pessoa", "Homem", "Mulher"],
-	 *   "axiomas": ["Homem subClassOf (Pessoa)", "Mulher subClassOf (Pessoa)"],
-	 *   "propriedades": ["hasPart"]
+	 *   "outformat": "OWL",
+	 *   "ontoclass": ["Pessoa", "Homem", "Mulher"],
+	 *   "ontoaxioms": ["Homem subClassOf (Pessoa)", "Mulher subClassOf (Pessoa)"],
+	 *   "ontoproperties": ["hasPart"]
 	 *	}
 	 * @param ontologia
 	 * @return String - Ontologia formatada
@@ -109,7 +109,7 @@ public class ElementosOWL {
 	public String formataOWL(String ontologia) {
 		JSONObject owl = new JSONObject(ontologia);
 		
-		String tipoFormato = owl.getString("formatosaida");
+		String tipoFormato = owl.getString("outformat");
 		
 		OWLOntologyManager man = OWLManager.createOWLOntologyManager();
 		OWLDocumentFormat formato = getFormatoSaidaOntologia(tipoFormato);
@@ -152,7 +152,7 @@ public class ElementosOWL {
 		 * Trabalha se as classes
 		 */
 		JSONArray classes = new JSONArray();
-		classes = owl.getJSONArray("classes");
+		classes = owl.getJSONArray("ontoclass");
 
 		for (int i = 0; i < classes.length(); i++) {
 			shortFormProvider.add(dataFactory.getOWLClass(iri.toString() + "#" + classes.get(i)));
@@ -162,7 +162,7 @@ public class ElementosOWL {
 		 * Trabalha se os axiomas declarativos
 		 */
 		JSONArray axiomas = new JSONArray();
-		axiomas = owl.getJSONArray("axiomas");
+		axiomas = owl.getJSONArray("ontoaxioms");
 		ManchesterOWLSyntaxParser parser = OWLManager.createManchesterParser();
 		parser.setOWLEntityChecker(entityChecker);
 
