@@ -12,10 +12,10 @@ public class Info {
 						"Modelo de dados para os metodos POST" + System.lineSeparator() + 
 						"	 * {\n"
 						+ "	 *   \"id\": \"https://onto4alleditor.com/pt/idDoProjeto\",\n"
-						+ "	 *   \"formatosaida\": \"OWL\",\n"
-						+ "	 *   \"classes\": [\"Pessoa\", \"Homem\", \"Mulher\"],\n"
-						+ "	 *   \"axiomas\": [\"Homem subClassOf (Pessoa)\", \"Mulher subClassOf (Pessoa)\"],\n"
-						+ "	 *   \"propriedades\": [\"hasPart\"]\n"
+						+ "	 *   \"outformat\": \"OWL\",\n"
+						+ "	 *   \"ontoclass\": [\"Pessoa\", \"Homem\", \"Mulher\"],\n"
+						+ "	 *   \"ontoaxioms\": [\"Homem subClassOf (Pessoa)\", \"Mulher subClassOf (Pessoa)\"],\n"
+						+ "	 *   \"ontoproperties\": [\"hasPart\"]\n"
 						+ "	 *	}";
 
 		return texto;
