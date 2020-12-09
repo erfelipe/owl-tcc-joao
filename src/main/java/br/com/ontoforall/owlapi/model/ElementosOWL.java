@@ -98,7 +98,7 @@ public class ElementosOWL {
 	 * String esperada:
 	 * {
 	 *   "id": "https://onto4alleditor.com/pt/idDoProjeto",
-	 *   "formato": "OWL",
+	 *   "formatosaida": "OWL",
 	 *   "classes": ["Pessoa", "Homem", "Mulher"],
 	 *   "axiomas": ["Homem subClassOf (Pessoa)", "Mulher subClassOf (Pessoa)"],
 	 *   "propriedades": ["hasPart"]
@@ -109,7 +109,7 @@ public class ElementosOWL {
 	public String formataOWL(String ontologia) {
 		JSONObject owl = new JSONObject(ontologia);
 		
-		String tipoFormato = owl.getString("formato");
+		String tipoFormato = owl.getString("formatosaida");
 		
 		OWLOntologyManager man = OWLManager.createOWLOntologyManager();
 		OWLDocumentFormat formato = getFormatoSaidaOntologia(tipoFormato);
