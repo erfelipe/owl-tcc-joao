@@ -1,6 +1,11 @@
 package br.com.ontoforall.owlapi.model;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.stream.Collectors;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.semanticweb.owlapi.apibinding.OWLManager;
@@ -26,6 +31,7 @@ import org.semanticweb.owlapi.formats.TrigDocumentFormat;
 import org.semanticweb.owlapi.formats.TrixDocumentFormat;
 import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLEntity;
@@ -201,7 +207,7 @@ public class ElementosOWL {
 			documentFormat = new LatexDocumentFormat();
 		} else if (formato.equals("N3")) {
 			documentFormat = new N3DocumentFormat();
-		} else if (formato.equals("SINTAXEMANCHERTER")) {
+		} else if (formato.equals("SINTAXEMANCHESTER")) {
 			documentFormat = new ManchesterSyntaxDocumentFormat();
 		} else if (formato.equals("NQUAD")) {
 			documentFormat = new NQuadsDocumentFormat();
@@ -227,4 +233,64 @@ public class ElementosOWL {
 		return documentFormat;
 	}	
 	
+	public String readFromOWL(String ontologia) throws OWLOntologyCreationException {
+		ArrayList<String> classes = new ArrayList<String>();
+		ArrayList<String> axiomas = new ArrayList<String>(); 
+		
+		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+		
+		InputStream targetStream = new ByteArrayInputStream(ontologia.getBytes());
+		OWLOntology ontology = manager.loadOntologyFromOntologyDocument(targetStream); 
+		
+		for (Object oc : ontology.classesInSignature().collect(Collectors.toSet())) {
+			classes.add(extractClassName(oc.toString()));
+			// get all axioms for each class
+			for (Object axiom : ontology.axioms((OWLClass) oc).collect(Collectors.toSet())) {
+				axiomas.add(axiomWithOutIRI(axiom.toString()));
+			};
+		};
+		return CodeClassAxiomToStr(classes, axiomas);
+	}
+	
+	public String extractClassName(String owlClass) {
+		Integer inicio = owlClass.indexOf("#") + 1;
+		Integer fim = owlClass.indexOf(">");
+		String resp = "";
+		
+		if ((inicio > 0) && (fim > 0)) {
+			resp = owlClass.substring(inicio, fim);
+		};
+		
+		return resp;
+	}
+	
+	public String axiomWithOutIRI(String axiom) {
+		String construto = "";
+		
+		Integer endConstruto = axiom.indexOf("(");
+		if (endConstruto > 0) {
+			construto = axiom.substring(0, endConstruto);	
+		} else {
+			construto = "";
+		}
+		
+		Integer iniParams = axiom.indexOf("(");
+		Integer fimParams = axiom.indexOf(")");
+		String params = axiom.substring(iniParams, fimParams);
+		String[] itemParams = params.split(" ");
+		
+		String param1 = extractClassName(itemParams[0]);
+		String param2 = extractClassName(itemParams[1]);
+		
+		return construto + " (" + param1 + " " + param2 + ")";
+	}
+	
+	public String CodeClassAxiomToStr(ArrayList<String> classes, ArrayList<String> axiomas) {
+		JSONObject extracao = new JSONObject();
+		
+		extracao.put("class", classes);
+		extracao.put("axiomas", axiomas);
+		
+		return extracao.toString();
+	}
 }
