@@ -1,0 +1,248 @@
+******************
+******************
+"outformat": "OWL"
+------------------
+<?xml version="1.0"?>
+<Ontology xmlns="http://www.w3.org/2002/07/owl#"
+     xml:base="https://onto4alleditor.com/pt/idDoProjeto"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:xml="http://www.w3.org/XML/1998/namespace"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     ontologyIRI="https://onto4alleditor.com/pt/idDoProjeto">
+    <Prefix name="owl" IRI="http://www.w3.org/2002/07/owl#"/>
+    <Prefix name="rdf" IRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#"/>
+    <Prefix name="xml" IRI="http://www.w3.org/XML/1998/namespace"/>
+    <Prefix name="xsd" IRI="http://www.w3.org/2001/XMLSchema#"/>
+    <Prefix name="rdfs" IRI="http://www.w3.org/2000/01/rdf-schema#"/>
+    <Declaration>
+        <Class IRI="#Pessoa"/>
+    </Declaration>
+    <Declaration>
+        <Class IRI="#Mulher"/>
+    </Declaration>
+    <Declaration>
+        <Class IRI="#Homem"/>
+    </Declaration>
+    <SubClassOf>
+        <Class IRI="#Homem"/>
+        <Class IRI="#Pessoa"/>
+    </SubClassOf>
+    <SubClassOf>
+        <Class IRI="#Mulher"/>
+        <Class IRI="#Pessoa"/>
+    </SubClassOf>
+</Ontology>
+
+******************
+******************
+"outformat": "TURTLE"
+------------------
+@prefix : <https://onto4alleditor.com/pt/idDoProjeto#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@base <https://onto4alleditor.com/pt/idDoProjeto#> .
+
+<https://onto4alleditor.com/pt/idDoProjeto> rdf:type owl:Ontology .
+
+#################################################################
+#    Classes
+#################################################################
+
+###  https://onto4alleditor.com/pt/idDoProjeto#Homem
+:Homem rdf:type owl:Class ;
+       rdfs:subClassOf :Pessoa .
+
+
+###  https://onto4alleditor.com/pt/idDoProjeto#Mulher
+:Mulher rdf:type owl:Class ;
+        rdfs:subClassOf :Pessoa .
+
+
+###  https://onto4alleditor.com/pt/idDoProjeto#Pessoa
+:Pessoa rdf:type owl:Class .
+
+******************
+******************
+"outformat": "SINTAXEMANCHESTER"
+------------------
+Prefix: owl: <http://www.w3.org/2002/07/owl#>
+Prefix: rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+Prefix: rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+Prefix: xml: <http://www.w3.org/XML/1998/namespace>
+Prefix: xsd: <http://www.w3.org/2001/XMLSchema#>
+Prefix: : <https://onto4alleditor.com/pt/idDoProjeto>
+
+
+
+Ontology: <https://onto4alleditor.com/pt/idDoProjeto>
+
+
+Class: <https://onto4alleditor.com/pt/idDoProjeto#Homem>
+
+    SubClassOf: 
+        <https://onto4alleditor.com/pt/idDoProjeto#Pessoa>
+    
+    
+Class: <https://onto4alleditor.com/pt/idDoProjeto#Mulher>
+
+    SubClassOf: 
+        <https://onto4alleditor.com/pt/idDoProjeto#Pessoa>
+    
+    
+Class: <https://onto4alleditor.com/pt/idDoProjeto#Pessoa>
+
+******************
+******************
+"outformat": "OBO"
+------------------
+format-version: 1.2
+ontology: https://onto4alleditor.com/pt/idDoProjeto
+
+[Term]
+id: Homem
+is_a: Pessoa
+
+[Term]
+id: Mulher
+is_a: Pessoa
+
+******************
+******************
+"outformat": "RDFJSON"
+------------------
+{
+  "https://onto4alleditor.com/pt/idDoProjeto" : {
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [
+      {
+        "value" : "http://www.w3.org/2002/07/owl#Ontology",
+        "type" : "uri"
+      }
+    ]
+  },
+  "https://onto4alleditor.com/pt/idDoProjeto#Homem" : {
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [
+      {
+        "value" : "http://www.w3.org/2002/07/owl#Class",
+        "type" : "uri"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#subClassOf" : [
+      {
+        "value" : "https://onto4alleditor.com/pt/idDoProjeto#Pessoa",
+        "type" : "uri"
+      }
+    ]
+  },
+  "https://onto4alleditor.com/pt/idDoProjeto#Mulher" : {
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [
+      {
+        "value" : "http://www.w3.org/2002/07/owl#Class",
+        "type" : "uri"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#subClassOf" : [
+      {
+        "value" : "https://onto4alleditor.com/pt/idDoProjeto#Pessoa",
+        "type" : "uri"
+      }
+    ]
+  },
+  "https://onto4alleditor.com/pt/idDoProjeto#Pessoa" : {
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [
+      {
+        "value" : "http://www.w3.org/2002/07/owl#Class",
+        "type" : "uri"
+      }
+    ]
+  }
+}
+
+******************
+******************
+"outformat": "RDFXML"
+------------------
+<?xml version="1.0"?>
+<rdf:RDF xmlns="https://onto4alleditor.com/pt/idDoProjeto#"
+     xml:base="https://onto4alleditor.com/pt/idDoProjeto"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:xml="http://www.w3.org/XML/1998/namespace"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+    <owl:Ontology rdf:about="https://onto4alleditor.com/pt/idDoProjeto"/>
+    
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    <!-- https://onto4alleditor.com/pt/idDoProjeto#Homem -->
+
+
+    <owl:Class rdf:about="https://onto4alleditor.com/pt/idDoProjeto#Homem">
+        <rdfs:subClassOf rdf:resource="https://onto4alleditor.com/pt/idDoProjeto#Pessoa"/>
+    </owl:Class>
+    
+
+
+    <!-- https://onto4alleditor.com/pt/idDoProjeto#Mulher -->
+
+
+    <owl:Class rdf:about="https://onto4alleditor.com/pt/idDoProjeto#Mulher">
+        <rdfs:subClassOf rdf:resource="https://onto4alleditor.com/pt/idDoProjeto#Pessoa"/>
+    </owl:Class>
+    
+
+    <!-- https://onto4alleditor.com/pt/idDoProjeto#Pessoa -->
+
+
+    <owl:Class rdf:about="https://onto4alleditor.com/pt/idDoProjeto#Pessoa"/>
+</rdf:RDF>
+
+******************
+******************
+"outformat": "SINTAXEDL"
+------------------
+Homem ⊑ Pessoa Mulher ⊑ Pessoa
+
+******************
+******************
+"outformat": "SINTAXEFUNCIONAL"
+------------------
+Prefix(:=<https://onto4alleditor.com/pt/idDoProjeto#>)
+Prefix(owl:=<http://www.w3.org/2002/07/owl#>)
+Prefix(rdf:=<http://www.w3.org/1999/02/22-rdf-syntax-ns#>)
+Prefix(xml:=<http://www.w3.org/XML/1998/namespace>)
+Prefix(xsd:=<http://www.w3.org/2001/XMLSchema#>)
+Prefix(rdfs:=<http://www.w3.org/2000/01/rdf-schema#>)
+
+
+Ontology(<https://onto4alleditor.com/pt/idDoProjeto>
+
+Declaration(Class(:Homem))
+Declaration(Class(:Mulher))
+Declaration(Class(:Pessoa))
+############################
+#   Classes
+############################
+
+# Class: <https://onto4alleditor.com/pt/idDoProjeto#Homem> (<https://onto4alleditor.com/pt/idDoProjeto#Homem>)
+
+SubClassOf(:Homem :Pessoa)
+
+# Class: <https://onto4alleditor.com/pt/idDoProjeto#Mulher> (<https://onto4alleditor.com/pt/idDoProjeto#Mulher>)
+
+SubClassOf(:Mulher :Pessoa)
+
+)
+
+
+
+

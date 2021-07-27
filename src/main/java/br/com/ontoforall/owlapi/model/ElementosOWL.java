@@ -30,14 +30,18 @@ import org.semanticweb.owlapi.formats.RioTurtleDocumentFormat;
 import org.semanticweb.owlapi.formats.TrigDocumentFormat;
 import org.semanticweb.owlapi.formats.TrixDocumentFormat;
 import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
+import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLEntity;
+import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.util.CachingBidirectionalShortFormProvider;
 import org.semanticweb.owlapi.util.SimpleShortFormProvider;
 import org.semanticweb.owlapi.util.mansyntax.ManchesterOWLSyntaxParser;
@@ -134,7 +138,7 @@ public class ElementosOWL {
 	}
 	
 	/**
-	 * Recebe os elementos da ontologia em String e transforma em ontologia tipada
+	 * Recebe os elementos da ontologia em String/JSON e transforma em ontologia tipada
 	 * @param String - elementos da ontologia 
 	 * @return OWLOntology 
 	 * @throws OWLOntologyCreationException 
@@ -165,6 +169,15 @@ public class ElementosOWL {
 		}
 		
 		/**
+		 * Teste com axiomas !OWL
+		 */
+		OWLObjectProperty hasSynonym = dataFactory.getOWLObjectProperty(iri + "#hasSynonym");
+		OWLClassExpression pessoaHasSononym = dataFactory.getOWLObjectSomeValuesFrom(hasSynonym, dataFactory.getOWLClass("#Pessoa"));
+		OWLClass gente = dataFactory.getOWLClass(iri + "#Gente");
+		OWLSubClassOfAxiom ax = dataFactory.getOWLSubClassOfAxiom(gente, pessoaHasSononym);
+		owlManager.applyChange(new AddAxiom(owlOntology, ax));
+		
+		/**
 		 * Trabalha se os axiomas declarativos
 		 */
 		JSONArray axiomas = new JSONArray();
@@ -178,6 +191,7 @@ public class ElementosOWL {
 				owlOntology.addAxiom(parser.parseAxiom());
 			}			
 		} catch (Exception e) {
+			System.out.println(e.getMessage());
 			return null;
 		}
 		return owlOntology;
