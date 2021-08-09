@@ -6,12 +6,12 @@ public class Example {
 
 	public static void main(String[] args) {
 
-		ElementosOWL elementos = new ElementosOWL();
-		Example ex = new Example();
+		// ElementosOWL elementos = new ElementosOWL();
+		// Example ex = new Example();
 		
-		String owl = elementos.formataOWL(ex.textFromOntoForAll());
+		// String owl = elementos.formataOWL(ex.textFromOntoForAll());
 
-		System.out.println(owl);
+		// System.out.println(owl);
 	}
 	
 	public String textFromOntoForAll() {	

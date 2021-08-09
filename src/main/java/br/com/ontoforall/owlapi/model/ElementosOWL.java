@@ -82,7 +82,7 @@ public class ElementosOWL {
 		classes = owl.getJSONArray("ontoclass");
 
 		for (int i = 0; i < classes.length(); i++) {
-			shortFormProvider.add(df.getOWLClass(IRI.create("https://onto4alleditor.com/pt/idDoProjeto/" + classes.get(i))));
+			shortFormProvider.add(df.getOWLClass(IRI.create("https://onto4alleditor.com/pt/definirID/" + classes.get(i))));
 		}
 
 		/**
@@ -100,6 +100,7 @@ public class ElementosOWL {
 			}
 			return Boolean.toString(true);
 		} catch (Exception e) {
+			System.out.println(e.toString());
 			return Boolean.toString(false);
 		}
 	}
@@ -171,11 +172,11 @@ public class ElementosOWL {
 		/**
 		 * Teste com axiomas !OWL
 		 */
-		OWLObjectProperty hasSynonym = dataFactory.getOWLObjectProperty(iri + "#hasSynonym");
-		OWLClassExpression pessoaHasSononym = dataFactory.getOWLObjectSomeValuesFrom(hasSynonym, dataFactory.getOWLClass("#Pessoa"));
-		OWLClass gente = dataFactory.getOWLClass(iri + "#Gente");
-		OWLSubClassOfAxiom ax = dataFactory.getOWLSubClassOfAxiom(gente, pessoaHasSononym);
-		owlManager.applyChange(new AddAxiom(owlOntology, ax));
+		// OWLObjectProperty hasSynonym = dataFactory.getOWLObjectProperty(iri + "#hasSynonym");
+		// OWLClassExpression pessoaHasSononym = dataFactory.getOWLObjectSomeValuesFrom(hasSynonym, dataFactory.getOWLClass("#Pessoa"));
+		// OWLClass gente = dataFactory.getOWLClass(iri + "#Gente");
+		// OWLSubClassOfAxiom ax = dataFactory.getOWLSubClassOfAxiom(gente, pessoaHasSononym);
+		// owlManager.applyChange(new AddAxiom(owlOntology, ax));
 		
 		/**
 		 * Trabalha se os axiomas declarativos
