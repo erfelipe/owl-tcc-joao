@@ -44,6 +44,12 @@ import org.semanticweb.owlapi.util.mansyntax.ManchesterOWLSyntaxParser;
 
 public class ElementosOWL {
 
+	private String id;
+	private String formato;
+	private JSONArray classes;
+	private JSONArray propriedades;
+	private JSONArray axiomas;
+
 	class Provider extends CachingBidirectionalShortFormProvider {
 
 		private SimpleShortFormProvider provider = new SimpleShortFormProvider();
@@ -54,44 +60,45 @@ public class ElementosOWL {
 		}
 	}
 
-	public ElementosOWL() {
+	public ElementosOWL(JSONObject ontologia) {
+		this.id = ontologia.getString("id") + "/";
+		this.formato = ontologia.getString("outformat");
+		this.classes = ontologia.getJSONArray("ontoclass");
+		this.propriedades = ontologia.getJSONArray("ontoproperties");
+		this.axiomas = ontologia.getJSONArray("ontoaxioms");
+	}
 
+	private Provider carregaProvider(){
+		Provider shortFormProvider = new Provider();
+		OWLDataFactory df = OWLManager.getOWLDataFactory();
+
+		// Carrega as Classes
+		for (int i = 0; i < this.classes.length(); i++)
+		shortFormProvider.add(df.getOWLClass(IRI.create(this.id + this.classes.get(i))));
+
+		//Carrega as Propriedades
+		for (int i = 0; i < this.propriedades.length(); i++)
+			shortFormProvider.add(df.getOWLDataProperty(IRI.create(this.id + this.propriedades.get(i))));
+
+		return shortFormProvider;
 	}
 
 	/**
 	 * Valida se a estrutura da modelagem da ontologia é válida 
-	 * @param ontologia
 	 * @return String - Confirmacao em Linguagem Natural
 	 */
-	public String validaOWL(String ontologia) {
-		OWLDataFactory df = OWLManager.getOWLDataFactory();
+	public String validaOWL() {
 
-		Provider shortFormProvider = new Provider();
+		Provider shortFormProvider = carregaProvider();
 		OWLEntityChecker entityChecker = new ShortFormEntityChecker(shortFormProvider);
 
-		JSONObject owl = new JSONObject(ontologia);
-
-		/**
-		 * Trabalha se as classes
-		 */
-		JSONArray classes = new JSONArray();
-		classes = owl.getJSONArray("ontoclass");
-
-		for (int i = 0; i < classes.length(); i++) {
-			shortFormProvider.add(df.getOWLClass(IRI.create("https://onto4alleditor.com/pt/idDoProjeto/" + classes.get(i))));
-		}
-
-		/**
-		 * Trabalha se os axiomas 
-		 */
-		JSONArray axiomas = new JSONArray();
-		axiomas = owl.getJSONArray("ontoaxioms");
+		//Carrega os Axiomas
 		ManchesterOWLSyntaxParser parser = OWLManager.createManchesterParser();
 		parser.setOWLEntityChecker(entityChecker);
 		
 		try {
-			for (int i = 0; i < axiomas.length(); i++) {
-				parser.setStringToParse(axiomas.getString(i));
+			for (int i = 0; i < this.axiomas.length(); i++) {
+				parser.setStringToParse(this.axiomas.getString(i));
 				parser.parseAxiom();
 			}
 			return Boolean.toString(true);
@@ -109,27 +116,19 @@ public class ElementosOWL {
 	 *   "ontoaxioms": ["Homem subClassOf (Pessoa)", "Mulher subClassOf (Pessoa)"],
 	 *   "ontoproperties": ["hasPart"]
 	 *	}
-	 * @param ontologia
 	 * @return String - Ontologia formatada
 	 */
-	public String formataOWL(String ontologia) {
-		JSONObject owl = new JSONObject(ontologia);
-		
-		String tipoFormato = owl.getString("outformat");
+	public String formataOWL() {
 		
 		OWLOntologyManager man = OWLManager.createOWLOntologyManager();
-		OWLDocumentFormat formato = getFormatoSaidaOntologia(tipoFormato);
 		try {
-			OWLOntology owlOntology = geraOWLdeString(ontologia);
-			if (owlOntology != null) {
+			OWLDocumentFormat formato = getFormatoSaidaOntologia();
+			OWLOntology owlOntology = geraOWLdeString();
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
 				man.saveOntology(owlOntology, formato, baos);
 				return baos.toString();
-			} else {
-				return "Erro: null. Problema na validação de axiomas.";
-			}	
 		} catch (Exception e) {
-			return "Ocorreu o seguinte erro: " + e.getMessage();
+			return "Ocorreu o seguinte erro: " + e.toString();
 		}
 	}
 	
@@ -137,100 +136,86 @@ public class ElementosOWL {
 	 * Recebe os elementos da ontologia em String e transforma em ontologia tipada
 	 * @param String - elementos da ontologia 
 	 * @return OWLOntology 
-	 * @throws OWLOntologyCreationException 
+	 * @throws Exception
 	 */
-	public OWLOntology geraOWLdeString(String ontologia) throws OWLOntologyCreationException {
-		JSONObject owl = new JSONObject(ontologia);
-
-		String id = owl.getString("id");
+	private OWLOntology geraOWLdeString() throws Exception {
 		
-		IRI iri = IRI.create(id);
+		IRI iri = IRI.create(this.id);
 		OWLOntologyManager owlManager = OWLManager.createOWLOntologyManager();
-		OWLOntology owlOntology;
-
-		owlOntology = owlManager.createOntology(iri);
-		OWLDataFactory dataFactory = owlOntology.getOWLOntologyManager().getOWLDataFactory();
-		
-		Provider shortFormProvider = new Provider();
+		OWLOntology owlOntology = owlManager.createOntology(iri);
+		Provider shortFormProvider = carregaProvider();
 		OWLEntityChecker entityChecker = new ShortFormEntityChecker(shortFormProvider);
-		
-		/**
-		 * Trabalha se as classes
-		 */
-		JSONArray classes = new JSONArray();
-		classes = owl.getJSONArray("ontoclass");
-
-		for (int i = 0; i < classes.length(); i++) {
-			shortFormProvider.add(dataFactory.getOWLClass(iri.toString() + "#" + classes.get(i)));
-		}
-		
-		/**
-		 * Trabalha se os axiomas declarativos
-		 */
-		JSONArray axiomas = new JSONArray();
-		axiomas = owl.getJSONArray("ontoaxioms");
 		ManchesterOWLSyntaxParser parser = OWLManager.createManchesterParser();
-		parser.setOWLEntityChecker(entityChecker);
 
+		parser.setOWLEntityChecker(entityChecker);
+		int index = 0;
+		
+		// Verifica Axiomas
 		try {
-			for (int i = 0; i < axiomas.length(); i++) {
-				parser.setStringToParse(axiomas.getString(i));
+			for (int i = 0; i < this.axiomas.length(); i++) {
+				index = i;
+				parser.setStringToParse(this.axiomas.getString(i));
 				owlOntology.addAxiom(parser.parseAxiom());
-			}			
+			}
+			return owlOntology;		
 		} catch (Exception e) {
-			return null;
+			throw new Exception("\nAxioma: ( " + this.axiomas.getString(index) + ") \n\n" + 
+								"Erro: ( " + e.toString() + " )"
+			);
 		}
-		return owlOntology;
+		
 	}
 	
 	/**
 	 * Retorna o tipo de formato para streaming de saida da ontologia
 	 * @param String - formato
 	 * @return OWLDocumentFormat
+	 * @throws Exception
 	 */
-	public OWLDocumentFormat getFormatoSaidaOntologia(String formato) {
-		OWLDocumentFormat documentFormat = null;
-
-		if (formato.equals("OWL")) {
-			documentFormat = new OWLXMLDocumentFormat();
-		} else if (formato.equals("TURTLE")) {
-			documentFormat = new TurtleDocumentFormat();
-		} else if (formato.equals("SINTAXEDL")) {
-			documentFormat = new DLSyntaxDocumentFormat();
-		} else if (formato.equals("SINTAXEDLHTML")) {
-			documentFormat = new DLSyntaxHTMLDocumentFormat();
-		} else if (formato.equals("SINTAXEFUNCIONAL")) {
-			documentFormat = new FunctionalSyntaxDocumentFormat();
-		} else if (formato.equals("KRSS")) {
-			documentFormat = new KRSS2DocumentFormat();
-		} else if (formato.equals("DOCUMENTOLATEX")) {
-			documentFormat = new LatexDocumentFormat();
-		} else if (formato.equals("N3")) {
-			documentFormat = new N3DocumentFormat();
-		} else if (formato.equals("SINTAXEMANCHESTER")) {
-			documentFormat = new ManchesterSyntaxDocumentFormat();
-		} else if (formato.equals("NQUAD")) {
-			documentFormat = new NQuadsDocumentFormat();
-		} else if (formato.equals("NTRIPLA")) {
-			documentFormat = new NTriplesDocumentFormat();
-		} else if (formato.equals("OBO")) {
-			documentFormat = new OBODocumentFormat();
-		} else if (formato.equals("RDFJSON")) {
-			documentFormat = new RDFJsonDocumentFormat();
-		} else if (formato.equals("RDFJSONLD")) {
-			documentFormat = new RDFJsonLDDocumentFormat();
-		} else if (formato.equals("RDFXML")) {
-			documentFormat = new RDFXMLDocumentFormat();
-		} else if (formato.equals("RIOTURTLE")) {
-			documentFormat = new RioTurtleDocumentFormat();
-		} else if (formato.equals("RIORDFXML")) {
-			documentFormat = new RioRDFXMLDocumentFormat();
-		} else if (formato.equals("TRIG")) {
-			documentFormat = new TrigDocumentFormat();
-		} else if (formato.equals("TRIX")) {
-			documentFormat = new TrixDocumentFormat();
+	private OWLDocumentFormat getFormatoSaidaOntologia() throws Exception {
+	
+		switch (this.formato) {
+			case "OWL":
+				return new OWLXMLDocumentFormat();
+			case "TURTLE":
+				return new TurtleDocumentFormat();
+			case "SINTAXEDL":
+				return new DLSyntaxDocumentFormat();
+			case "SINTAXEDLHTML":
+				return new DLSyntaxHTMLDocumentFormat();
+			case "SINTAXEFUNCIONAL":
+				return new FunctionalSyntaxDocumentFormat();
+			case "KRSS":
+				return new KRSS2DocumentFormat();
+			case "DOCUMENTOLATEX":
+				return new LatexDocumentFormat();
+				case "N3":
+				return new N3DocumentFormat();
+			case "SINTAXEMANCHESTER":
+				return new ManchesterSyntaxDocumentFormat();
+			case "NQUAD":
+				return new NQuadsDocumentFormat();
+			case "NTRIPLA":
+				return new NTriplesDocumentFormat();
+			case "OBO":
+				return new OBODocumentFormat();
+			case "RDFJSON":
+				return new RDFJsonDocumentFormat();
+			case "RDFJSONLD":
+				return new RDFJsonLDDocumentFormat();
+			case "RDFXML":
+				return new RDFXMLDocumentFormat();
+			case "RIOTURTLE":
+				return new RioTurtleDocumentFormat();
+			case "RIORDFXML":
+				return new RioRDFXMLDocumentFormat();
+			case "TRIG":
+				return new TrigDocumentFormat();
+			case "TRIX":
+				return new TrixDocumentFormat();
+			default:
+				throw new Exception("Formato de saída inexistente ou não suportado!");
 		}
-		return documentFormat;
 	}	
 	
 	public String readFromOWL(String ontologia) throws OWLOntologyCreationException {
@@ -259,7 +244,7 @@ public class ElementosOWL {
 		
 		if ((inicio > 0) && (fim > 0)) {
 			resp = owlClass.substring(inicio, fim);
-		};
+		}
 		
 		return resp;
 	}
