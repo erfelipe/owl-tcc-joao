@@ -1,0 +1,58 @@
+========================================================
+Configuração para preparar o ambiente com a API Onto4All
+========================================================
+
+Se não tiver, instalar o JDK:
+https://www.oracle.com/java/technologies/javase/javase-jdk8-downloads.html
+
+
+Instalar o eclipse para J2EE:
+https://www.eclipse.org/downloads/packages/release/2021-06/r/eclipse-ide-enterprise-java-and-web-developers 
+
+
+Instalar o postman (para testes):
+https://www.postman.com/downloads/
+
+
+Baixar o código fonte:
+https://github.com/erfelipe/owlRest 
+
+
+* Ao abrir o código fonte no Eclipse (Open projects from file system), observar a pasta: src/main/java 
+  Nesta pasta há dois pacotes relevantes: model e resources
+- Em resources, o arquivo Rotas.java define a exposição dos endpoints
+- Em model, o arquivo ElementosOWL.java há a lógica de manipulação dos dados
+
+
+* Para deixar a API disponível para teste:
+
+* Teste 1 *
+- Verificar funcionamento
+- Clique na pasta do projeto (no eclipse) com o botão direito
+- Escolher: Run As -> Run on Server
+- Abrir o programa postman
+- No espaço para endereço (URL), colocar:  localhost:8080/owlapi/webapi/ontology/info
+- Deixar método GET
+- Clicar em Send 
+
+* Teste 2 * 
+- Para codificar em OWL, dados vindos do Onto4All 
+- Escolher método POST
+- Colocar na URL: http://200.17.70.211:13951/owlapi/webapi/ontology/format 
+- Clicar em Body
+- Escolher raw
+- Escolher JSON (na caixa de opções)
+- Colar no corpo da requisição:
+    {
+        "id": "https://onto4alleditor.com/pt/idDoProjeto",
+        "outformat": "OWL",
+        "ontoclass": ["Pessoa", "Homem", "Mulher"],
+        "ontoaxioms": ["Homem subClassOf (Pessoa)", "Mulher subClassOf (Pessoa)"],
+        "ontoproperties": ["hasPart"]
+     }
+- Clicar em Send 
+
+
+
+
+

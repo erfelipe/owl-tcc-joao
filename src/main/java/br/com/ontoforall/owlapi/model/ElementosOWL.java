@@ -30,14 +30,18 @@ import org.semanticweb.owlapi.formats.RioTurtleDocumentFormat;
 import org.semanticweb.owlapi.formats.TrigDocumentFormat;
 import org.semanticweb.owlapi.formats.TrixDocumentFormat;
 import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
+import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLEntity;
+import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.util.CachingBidirectionalShortFormProvider;
 import org.semanticweb.owlapi.util.SimpleShortFormProvider;
 import org.semanticweb.owlapi.util.mansyntax.ManchesterOWLSyntaxParser;
@@ -93,6 +97,24 @@ public class ElementosOWL {
 		OWLEntityChecker entityChecker = new ShortFormEntityChecker(shortFormProvider);
 
 		//Carrega os Axiomas
+		JSONObject owl = new JSONObject(ontologia);
+
+		/**
+		 * Trabalha se as classes
+		 */
+		JSONArray classes = new JSONArray();
+		classes = owl.getJSONArray("ontoclass");
+
+		for (int i = 0; i < classes.length(); i++) {
+			shortFormProvider.add(df.getOWLClass(IRI.create("https://onto4alleditor.com/pt/definirID/" + classes.get(i))));
+		}
+
+		/**
+		 * Trabalha se os axiomas 
+		 */
+		JSONArray axiomas = new JSONArray();
+		axiomas = owl.getJSONArray("ontoaxioms");
+
 		ManchesterOWLSyntaxParser parser = OWLManager.createManchesterParser();
 		parser.setOWLEntityChecker(entityChecker);
 		
@@ -103,6 +125,7 @@ public class ElementosOWL {
 			}
 			return Boolean.toString(true);
 		} catch (Exception e) {
+			System.out.println(e.toString());
 			return Boolean.toString(false);
 		}
 	}
@@ -133,7 +156,7 @@ public class ElementosOWL {
 	}
 	
 	/**
-	 * Recebe os elementos da ontologia em String e transforma em ontologia tipada
+	 * Recebe os elementos da ontologia em String/JSON e transforma em ontologia tipada
 	 * @param String - elementos da ontologia 
 	 * @return OWLOntology 
 	 * @throws Exception
@@ -145,6 +168,32 @@ public class ElementosOWL {
 		OWLOntology owlOntology = owlManager.createOntology(iri);
 		Provider shortFormProvider = carregaProvider();
 		OWLEntityChecker entityChecker = new ShortFormEntityChecker(shortFormProvider);
+
+		/**
+		 * Trabalha se as classes
+		 */
+		JSONArray classes = new JSONArray();
+		classes = owl.getJSONArray("ontoclass");
+
+		for (int i = 0; i < classes.length(); i++) {
+			shortFormProvider.add(dataFactory.getOWLClass(iri.toString() + "#" + classes.get(i)));
+		}
+		
+		/**
+		 * Teste com axiomas !OWL
+		 */
+		// OWLObjectProperty hasSynonym = dataFactory.getOWLObjectProperty(iri + "#hasSynonym");
+		// OWLClassExpression pessoaHasSononym = dataFactory.getOWLObjectSomeValuesFrom(hasSynonym, dataFactory.getOWLClass("#Pessoa"));
+		// OWLClass gente = dataFactory.getOWLClass(iri + "#Gente");
+		// OWLSubClassOfAxiom ax = dataFactory.getOWLSubClassOfAxiom(gente, pessoaHasSononym);
+		// owlManager.applyChange(new AddAxiom(owlOntology, ax));
+		
+		/**
+		 * Trabalha se os axiomas declarativos
+		 */
+		JSONArray axiomas = new JSONArray();
+		axiomas = owl.getJSONArray("ontoaxioms");
+
 		ManchesterOWLSyntaxParser parser = OWLManager.createManchesterParser();
 
 		parser.setOWLEntityChecker(entityChecker);
@@ -159,9 +208,14 @@ public class ElementosOWL {
 			}
 			return owlOntology;		
 		} catch (Exception e) {
+
 			throw new Exception("\nAxioma: ( " + this.axiomas.getString(index) + ") \n\n" + 
 								"Erro: ( " + e.toString() + " )"
 			);
+
+			System.out.println(e.getMessage());
+			return null;
+
 		}
 		
 	}
