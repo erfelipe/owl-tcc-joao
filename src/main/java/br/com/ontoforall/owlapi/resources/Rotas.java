@@ -12,6 +12,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
@@ -41,7 +42,7 @@ public class Rotas {
 	@Path("valid")
 	@Produces(MediaType.TEXT_PLAIN)
 	@Consumes(MediaType.APPLICATION_JSON)
-	public Response validacao(String ontologia) {
+	public Response validacao(String ontologia) throws JSONException, Exception {
 		ElementosOWL elementos = new ElementosOWL(new JSONObject(ontologia));
 		String resp = elementos.validaOWL();
 		return Response.status(Status.ACCEPTED).entity(resp).build();
@@ -51,7 +52,7 @@ public class Rotas {
 	@Path("format")
 	@Produces(MediaType.TEXT_PLAIN)
 	@Consumes(MediaType.APPLICATION_JSON)
-	public Response formata(String ontologia) {
+	public Response formata(String ontologia) throws JSONException, Exception {
 		ElementosOWL elementos = new ElementosOWL(new JSONObject(ontologia));
 		String resp = elementos.formataOWL();
 		return Response.status(Status.ACCEPTED).entity(resp).build();
@@ -62,7 +63,7 @@ public class Rotas {
 	@Produces(MediaType.TEXT_PLAIN)
 	@Consumes(MediaType.APPLICATION_XML)
 	public Response readFromOWL(String ontologia) throws OWLOntologyCreationException {
-		ElementosOWL elementos = new ElementosOWL(new JSONObject(ontologia));
+		ElementosOWL elementos = new ElementosOWL();
 		String resp = elementos.readFromOWL(ontologia);
 		return Response.status(Status.ACCEPTED)
 						.entity(resp)

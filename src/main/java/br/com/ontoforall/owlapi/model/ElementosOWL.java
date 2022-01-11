@@ -4,13 +4,16 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.expression.OWLEntityChecker;
-import org.semanticweb.owlapi.expression.ShortFormEntityChecker;
 import org.semanticweb.owlapi.formats.DLSyntaxDocumentFormat;
 import org.semanticweb.owlapi.formats.DLSyntaxHTMLDocumentFormat;
 import org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat;
@@ -31,44 +34,269 @@ import org.semanticweb.owlapi.formats.TrigDocumentFormat;
 import org.semanticweb.owlapi.formats.TrixDocumentFormat;
 import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLAnnotationProperty;
+import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLDataProperty;
+import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLEntity;
+import org.semanticweb.owlapi.model.OWLLiteral;
+import org.semanticweb.owlapi.model.OWLNamedIndividual;
+import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
-import org.semanticweb.owlapi.util.CachingBidirectionalShortFormProvider;
-import org.semanticweb.owlapi.util.SimpleShortFormProvider;
+import org.semanticweb.owlapi.model.PrefixManager;
+import org.semanticweb.owlapi.util.DefaultPrefixManager;
 import org.semanticweb.owlapi.util.mansyntax.ManchesterOWLSyntaxParser;
 
 public class ElementosOWL {
 
-	private String id;
-	private String formato;
-	private JSONArray classes;
-	private JSONArray propriedades;
-	private JSONArray axiomas;
+	private OWLOntology ont;
+	private OWLDocumentFormat filetype;
 
-	class Provider extends CachingBidirectionalShortFormProvider {
-
-		private SimpleShortFormProvider provider = new SimpleShortFormProvider();
-
-		@Override
-		protected String generateShortForm(OWLEntity entity) {
-			return provider.getShortForm(entity);
+	public ElementosOWL(JSONObject json_arr) throws Exception{
+		if (!json_arr.has("id") || !json_arr.has("filetype"))
+			throw new Exception("ID ou Filetype está ausente.");
+		else{
+			this.filetype = carregaFormatoSaidaOntologia(json_arr.getString("filetype"));
+			IRI iri = IRI.create(json_arr.getString("id") + "/");
+			OWLOntologyManager owlManager = OWLManager.createOWLOntologyManager();
+			this.ont = owlManager.createOntology(iri);
+			if (json_arr.has("classes"))
+				this.loadClasses(json_arr.getJSONArray("classes"));
+			if (json_arr.has("object properties"))
+				this.loadObjectProperties(json_arr.getJSONArray("object properties"));
+			if (json_arr.has("constraints"))
+				this.loadConstraints(json_arr.getJSONArray("constraints"));
 		}
 	}
 
-	public ElementosOWL(JSONObject ontologia) {
-		this.id = ontologia.getString("id") + "/";
-		this.formato = ontologia.getString("outformat");
-		this.classes = ontologia.getJSONArray("ontoclass");
-		this.propriedades = ontologia.getJSONArray("ontoproperties");
-		this.axiomas = ontologia.getJSONArray("ontoaxioms");
+	public ElementosOWL(){}
+
+	private void loadClasses(JSONArray json_classes){
+		OWLDataFactory df = OWLManager.getOWLDataFactory();
+		for (int i = 0; i < json_classes.length(); i++){
+			JSONObject json_class = json_classes.getJSONObject(i);
+			OWLClass  classe = initClass(json_class.getString("Name"));
+			this.ont.add(df.getOWLDeclarationAxiom(classe));
+			if (json_class.has("SubClassOf"))
+				this.loadClassProperties(json_class.getJSONArray("SubClassOf"), classe, "SubClassOf");
+			if (json_class.has("EquivalentTo"))
+				this.loadClassProperties(json_class.getJSONArray("EquivalentTo"), classe, "EquivalentTo");
+			if (json_class.has("DisjointWith"))
+				this.loadClassProperties(json_class.getJSONArray("DisjointWith"), classe, "DisjointWith");
+			if (json_class.has("Annotation"))
+				this.loadClassAnnotation(json_class.getJSONArray("Annotation"), classe);
+		}
 	}
 
-	private Provider carregaProvider(){
+	private ManchesterOWLSyntaxParser loadParser(){
+		ManchesterOWLSyntaxParser parser = OWLManager.createManchesterParser();
+		parser.setDefaultOntology(this.ont);
+		final Map<String, OWLEntity> map = new HashMap<>();
+		ont.signature().forEach(x -> map.put(x.getIRI().getFragment(), x));
+		
+		parser.setOWLEntityChecker(new OWLEntityChecker() {
+			
+			private <T> T v(String name, Class<T> t) {
+				OWLEntity e = map.get(name);
+				if (t.isInstance(e)) {
+					return t.cast(e);
+				}
+				return null;
+			}
+	
+			@Override
+			public OWLObjectProperty getOWLObjectProperty(String name) {
+				return v(name, OWLObjectProperty.class);
+			}
+	
+			@Override
+			public OWLNamedIndividual getOWLIndividual(String name) {
+				return v(name, OWLNamedIndividual.class);
+			}
+	
+			@Override
+			public OWLDatatype getOWLDatatype(String name) {
+				return v(name, OWLDatatype.class);
+			}
+	
+			@Override
+			public OWLDataProperty getOWLDataProperty(String name) {
+				return v(name, OWLDataProperty.class);
+			}
+	
+			@Override
+			public OWLClass getOWLClass(String name) {
+				return v(name, OWLClass.class);
+			}
+	
+			@Override
+			public OWLAnnotationProperty getOWLAnnotationProperty(String name) {
+				return v(name, OWLAnnotationProperty.class);
+			}
+		});
+		return parser;
+	}
+
+	private void loadConstraints(JSONArray constraints){
+		ManchesterOWLSyntaxParser parser = this.loadParser();
+		
+		for (int i = 0; i < constraints.length(); i++) {
+			parser.setStringToParse(constraints.getString(i));
+			this.ont.add(parser.parseAxiom());
+		}
+	}
+
+	private void loadClassAnnotation(JSONArray anno_array, OWLClass cl){
+		OWLDataFactory df = OWLManager.getOWLDataFactory();
+		for (int i = 0; i < anno_array.length(); i++){
+			JSONObject anno = anno_array.getJSONObject(i);
+			OWLLiteral lit = df.getOWLLiteral(anno.getString("Annotation"), anno.getString("Language"));
+			OWLAnnotation owl_anno = df.getOWLAnnotation(df.getRDFSComment(), lit);
+			this.ont.add(df.getOWLAnnotationAssertionAxiom(cl.getIRI(), owl_anno));
+		}
+	}
+
+	private void loadObjectPropertyAnnotation(JSONArray anno_array, OWLObjectProperty obj_prop){
+		OWLDataFactory df = OWLManager.getOWLDataFactory();
+		for (int i = 0; i < anno_array.length(); i++){
+			JSONObject anno = anno_array.getJSONObject(i);
+			OWLLiteral lit = df.getOWLLiteral(anno.getString("Annotation"), anno.getString("Language"));
+			OWLAnnotation owl_anno = df.getOWLAnnotation(df.getRDFSComment(), lit);
+			this.ont.add(df.getOWLAnnotationAssertionAxiom(obj_prop.getIRI(), owl_anno));
+		}
+	}
+
+	private void loadClassProperties(JSONArray prop_array, OWLClass cl, String property){
+		OWLDataFactory df = OWLManager.getOWLDataFactory();
+		for (int i = 0; i < prop_array.length(); i++){
+			OWLClass oclass  = this.initClass(prop_array.get(i).toString());
+			switch (property) {
+				case "SubClassOf":
+					this.ont.addAxiom(df.getOWLSubClassOfAxiom(cl, oclass));
+					break;
+				case "EquivalentTo":
+					this.ont.addAxiom(df.getOWLEquivalentClassesAxiom(cl, oclass));
+					break;
+				case "DisjointWith":
+					this.ont.addAxiom(df.getOWLDisjointClassesAxiom(cl, oclass));
+					break;
+				default:
+					break;
+			}
+		}
+	}
+
+	private OWLClass initClass(String name){
+		OWLDataFactory df = OWLManager.getOWLDataFactory();
+		PrefixManager pm = new DefaultPrefixManager(this.ont.getOntologyID().getOntologyIRI().get().toString());
+		return df.getOWLClass(name, pm);
+	}
+
+	private void loadObjectProperties(JSONArray json_obj_props){
+		OWLDataFactory df = OWLManager.getOWLDataFactory();
+		for (int i = 0; i < json_obj_props.length(); i++){
+			JSONObject json_obj_prop = json_obj_props.getJSONObject(i);
+			OWLObjectProperty  obj_prop = initObjectProperty(json_obj_prop.getString("Name"));
+			this.ont.add(df.getOWLDeclarationAxiom(obj_prop));
+			if (json_obj_prop.has("SubPropertyOf"))
+				this.loadObjectPropertiesProperties(json_obj_prop.getJSONArray("SubPropertyOf"), obj_prop, "SubPropertyOf");
+			if (json_obj_prop.has("EquivalentTo"))
+				this.loadObjectPropertiesProperties(json_obj_prop.getJSONArray("EquivalentTo"), obj_prop, "EquivalentTo");
+			if (json_obj_prop.has("DisjointWith"))
+				this.loadObjectPropertiesProperties(json_obj_prop.getJSONArray("DisjointWith"), obj_prop, "DisjointWith");
+			if (json_obj_prop.has("InverseOf"))
+				this.loadObjectPropertiesProperties(json_obj_prop.getJSONArray("InverseOf"), obj_prop, "InverseOf");
+			if(json_obj_prop.has("Characteristics"))
+				this.loadObjectPropertiesCharacteristcs(json_obj_prop.getJSONArray("Characteristics"), obj_prop);
+			if(json_obj_prop.has("Domain"))
+				this.loadObjectPropertiesDomainRange(json_obj_prop.getJSONArray("Domain"), obj_prop, "Domain");
+			if(json_obj_prop.has("Range"))
+				this.loadObjectPropertiesDomainRange(json_obj_prop.getJSONArray("Range"), obj_prop, "Range");
+			if(json_obj_prop.has("Annotation"))
+				this.loadObjectPropertyAnnotation(json_obj_prop.getJSONArray("Annotation"), obj_prop);
+		}
+	}
+
+	private void loadObjectPropertiesDomainRange(JSONArray domain_range_array, OWLObjectProperty obj_prop, String domain_range){
+		OWLDataFactory df = OWLManager.getOWLDataFactory();
+		for (int i = 0; i < domain_range_array.length(); i++){
+			OWLClass cl = initClass(domain_range_array.getString(i));
+			if (domain_range.equals("Domain"))
+				this.ont.add(df.getOWLObjectPropertyDomainAxiom(obj_prop, cl));
+			else // Range
+				this.ont.add(df.getOWLObjectPropertyRangeAxiom(obj_prop, cl));
+		}
+	}
+
+	private void loadObjectPropertiesCharacteristcs(JSONArray characs, OWLObjectProperty obj_prop){
+		OWLDataFactory df = OWLManager.getOWLDataFactory();
+		Set<OWLAxiom> propAxioms = new HashSet<OWLAxiom>();
+
+		for (int i = 0; i < characs.length(); i++){
+			switch (characs.getString(i)) {
+				case "Functional":
+					propAxioms.add(df.getOWLFunctionalObjectPropertyAxiom(obj_prop));
+					break;
+				case "Inverse Functional":
+					propAxioms.add(df.getOWLInverseFunctionalObjectPropertyAxiom(obj_prop));
+					break;
+				case "Transitive":
+					propAxioms.add(df.getOWLTransitiveObjectPropertyAxiom(obj_prop));
+					break;
+				case "Symmetric":
+					propAxioms.add(df.getOWLSymmetricObjectPropertyAxiom(obj_prop));
+					break;
+				case "Asymmetric":
+					propAxioms.add(df.getOWLAsymmetricObjectPropertyAxiom(obj_prop));
+					break;
+				case "Reflexive":
+					propAxioms.add(df.getOWLReflexiveObjectPropertyAxiom(obj_prop));
+					break;
+				case "Irreflexive":
+					propAxioms.add(df.getOWLIrreflexiveObjectPropertyAxiom(obj_prop));
+					break;
+				default:
+					break;
+			}
+		}
+		this.ont.addAxioms(propAxioms);		
+	}
+
+	private void loadObjectPropertiesProperties(JSONArray prop_array, OWLObjectProperty obj_prop, String property){
+		OWLDataFactory df = OWLManager.getOWLDataFactory();
+		for (int i = 0; i < prop_array.length(); i++){
+			OWLObjectProperty oobjprop = this.initObjectProperty(prop_array.get(i).toString());
+			switch (property) {
+				case "SubPropertyOf":
+					this.ont.addAxiom(df.getOWLSubObjectPropertyOfAxiom(obj_prop, oobjprop));
+					break;
+				case "EquivalentTo":
+					this.ont.addAxiom(df.getOWLEquivalentObjectPropertiesAxiom(obj_prop, oobjprop));
+					break;
+				case "DisjointWith":
+					this.ont.addAxiom(df.getOWLDisjointObjectPropertiesAxiom(obj_prop, oobjprop));
+					break;
+				case "InverseOf":
+					this.ont.addAxiom(df.getOWLInverseObjectPropertiesAxiom(obj_prop, oobjprop));
+				default:
+					break;
+			}
+		}
+	}
+
+	private OWLObjectProperty initObjectProperty(String name){
+		OWLDataFactory df = OWLManager.getOWLDataFactory();
+		PrefixManager pm = new DefaultPrefixManager(this.ont.getOntologyID().getOntologyIRI().get().toString());
+		return df.getOWLObjectProperty(name, pm);		
+	}
+
+/* 	private Provider carregaProvider(){
 		Provider shortFormProvider = new Provider();
 		OWLDataFactory df = OWLManager.getOWLDataFactory();
 
@@ -80,14 +308,17 @@ public class ElementosOWL {
 		for (int i = 0; i < this.propriedades.length(); i++)
 			shortFormProvider.add(df.getOWLDataProperty(IRI.create(this.id + this.propriedades.get(i))));
 
+		//Carrega os individuos
+		for (int i = 0; i < this.individuos.length(); i++)
+			shortFormProvider.add(df.getOWLNamedIndividual(IRI.create(this.id + this.individuos.get(i))));
 		return shortFormProvider;
-	}
+	} */
 
 	/**
 	 * Valida se a estrutura da modelagem da ontologia é válida 
 	 * @return String - Confirmacao em Linguagem Natural
 	 */
-	public String validaOWL() {
+/* 	public String validaOWL() {
 
 		Provider shortFormProvider = carregaProvider();
 		OWLEntityChecker entityChecker = new ShortFormEntityChecker(shortFormProvider);
@@ -105,6 +336,10 @@ public class ElementosOWL {
 		} catch (Exception e) {
 			return Boolean.toString(false);
 		}
+	} */
+
+	public String validaOWL(){
+		return null;
 	}
 	
 	/**
@@ -114,7 +349,11 @@ public class ElementosOWL {
 	 *   "outformat": "OWL",
 	 *   "ontoclass": ["Pessoa", "Homem", "Mulher"],
 	 *   "ontoaxioms": ["Homem subClassOf (Pessoa)", "Mulher subClassOf (Pessoa)"],
-	 *   "ontoproperties": ["hasPart"]
+	 *   "ontoproperties": ["hasPart", "hasSister", "hasBrother"],
+	 * 	 "ontoindividuals": ["João", "Maria"],
+	 *   "ontoinverse": ["hasSister hasBrother"],
+	 *   "caracproperties": ["hasSister Asymetric Irreflexive Inverse_Functional"],
+	 * 	 "classannotations": ["hasSister pt Possui uma irmã"]
 	 *	}
 	 * @return String - Ontologia formatada
 	 */
@@ -122,10 +361,9 @@ public class ElementosOWL {
 		
 		OWLOntologyManager man = OWLManager.createOWLOntologyManager();
 		try {
-			OWLDocumentFormat formato = getFormatoSaidaOntologia();
-			OWLOntology owlOntology = geraOWLdeString();
+				OWLOntology owlOntology = geraOWLdeString();
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
-				man.saveOntology(owlOntology, formato, baos);
+				man.saveOntology(owlOntology, this.filetype, baos);
 				return baos.toString();
 		} catch (Exception e) {
 			return "Ocorreu o seguinte erro: " + e.toString();
@@ -140,30 +378,20 @@ public class ElementosOWL {
 	 */
 	private OWLOntology geraOWLdeString() throws Exception {
 		
-		IRI iri = IRI.create(this.id);
-		OWLOntologyManager owlManager = OWLManager.createOWLOntologyManager();
-		OWLOntology owlOntology = owlManager.createOntology(iri);
-		Provider shortFormProvider = carregaProvider();
-		OWLEntityChecker entityChecker = new ShortFormEntityChecker(shortFormProvider);
-		ManchesterOWLSyntaxParser parser = OWLManager.createManchesterParser();
+		//Carrega as classes
+		
+		//Provider shortFormProvider = carregaProvider();
 
-		parser.setOWLEntityChecker(entityChecker);
-		int index = 0;
-		
 		// Verifica Axiomas
-		try {
-			for (int i = 0; i < this.axiomas.length(); i++) {
-				index = i;
-				parser.setStringToParse(this.axiomas.getString(i));
-				owlOntology.addAxiom(parser.parseAxiom());
-			}
-			return owlOntology;		
-		} catch (Exception e) {
-			throw new Exception("\nAxioma: ( " + this.axiomas.getString(index) + ") \n\n" + 
-								"Erro: ( " + e.toString() + " )"
-			);
-		}
-		
+		//owlOntology = formataAxiomas(owlOntology, shortFormProvider);
+		//Verifica as propriedades inversas
+		//owlOntology = formataPropriedadeInversa(owlOntology);
+		//Verifica caracteristicas de propriedades
+		//owlOntology = formataCaracteristicasDePropriedades(owlOntology);
+		//Verifica anotações
+		//owlOntology = formataAnotacoes(owlOntology);
+
+		return this.ont;
 	}
 	
 	/**
@@ -172,9 +400,8 @@ public class ElementosOWL {
 	 * @return OWLDocumentFormat
 	 * @throws Exception
 	 */
-	private OWLDocumentFormat getFormatoSaidaOntologia() throws Exception {
-	
-		switch (this.formato) {
+	private OWLDocumentFormat carregaFormatoSaidaOntologia(String formato) throws Exception {
+		switch (formato) {
 			case "OWL":
 				return new OWLXMLDocumentFormat();
 			case "TURTLE":
