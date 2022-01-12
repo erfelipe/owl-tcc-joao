@@ -52,6 +52,7 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.PrefixManager;
 import org.semanticweb.owlapi.util.DefaultPrefixManager;
 import org.semanticweb.owlapi.util.mansyntax.ManchesterOWLSyntaxParser;
+import org.semanticweb.owlapi.vocab.OWL2Datatype;
 
 public class ElementosOWL {
 
@@ -70,6 +71,8 @@ public class ElementosOWL {
 				this.loadClasses(json_arr.getJSONArray("classes"));
 			if (json_arr.has("object properties"))
 				this.loadObjectProperties(json_arr.getJSONArray("object properties"));
+			if (json_arr.has("data properties"))
+				this.loadDataProperties(json_arr.getJSONArray("data properties"));
 			if (json_arr.has("constraints"))
 				this.loadConstraints(json_arr.getJSONArray("constraints"));
 		}
@@ -156,7 +159,7 @@ public class ElementosOWL {
 		OWLDataFactory df = OWLManager.getOWLDataFactory();
 		for (int i = 0; i < anno_array.length(); i++){
 			JSONObject anno = anno_array.getJSONObject(i);
-			OWLLiteral lit = df.getOWLLiteral(anno.getString("Annotation"), anno.getString("Language"));
+			OWLLiteral lit = df.getOWLLiteral(anno.getString("Comment"), anno.getString("Language"));
 			OWLAnnotation owl_anno = df.getOWLAnnotation(df.getRDFSComment(), lit);
 			this.ont.add(df.getOWLAnnotationAssertionAxiom(cl.getIRI(), owl_anno));
 		}
@@ -166,9 +169,19 @@ public class ElementosOWL {
 		OWLDataFactory df = OWLManager.getOWLDataFactory();
 		for (int i = 0; i < anno_array.length(); i++){
 			JSONObject anno = anno_array.getJSONObject(i);
-			OWLLiteral lit = df.getOWLLiteral(anno.getString("Annotation"), anno.getString("Language"));
+			OWLLiteral lit = df.getOWLLiteral(anno.getString("Comment"), anno.getString("Language"));
 			OWLAnnotation owl_anno = df.getOWLAnnotation(df.getRDFSComment(), lit);
 			this.ont.add(df.getOWLAnnotationAssertionAxiom(obj_prop.getIRI(), owl_anno));
+		}
+	}
+
+	private void loadDataPropertyAnnotation(JSONArray anno_array, OWLDataProperty data_prop){
+		OWLDataFactory df = OWLManager.getOWLDataFactory();
+		for (int i = 0; i < anno_array.length(); i++){
+			JSONObject anno = anno_array.getJSONObject(i);
+			OWLLiteral lit = df.getOWLLiteral(anno.getString("Comment"), anno.getString("Language"));
+			OWLAnnotation owl_anno = df.getOWLAnnotation(df.getRDFSComment(), lit);
+			this.ont.add(df.getOWLAnnotationAssertionAxiom(data_prop.getIRI(), owl_anno));
 		}
 	}
 
@@ -223,6 +236,45 @@ public class ElementosOWL {
 		}
 	}
 
+	private void loadDataPropertiesCharacteristcs(JSONArray characs, OWLDataProperty data_prop){
+		OWLDataFactory df = OWLManager.getOWLDataFactory();
+		Set<OWLAxiom> propAxioms = new HashSet<OWLAxiom>();
+
+		for (int i = 0; i < characs.length(); i++){
+			switch (characs.getString(i)) {
+				case "Functional":
+					propAxioms.add(df.getOWLFunctionalDataPropertyAxiom(data_prop));
+					break;
+				default:
+					break;
+			}
+		}
+		this.ont.addAxioms(propAxioms);		
+	}
+
+	private void loadDataProperties(JSONArray json_obj_props){
+		OWLDataFactory df = OWLManager.getOWLDataFactory();
+		for (int i = 0; i < json_obj_props.length(); i++){
+			JSONObject json_obj_prop = json_obj_props.getJSONObject(i);
+			OWLDataProperty  data_prop = initDataProperty(json_obj_prop.getString("Name"));
+			this.ont.add(df.getOWLDeclarationAxiom(data_prop));
+			if (json_obj_prop.has("SubPropertyOf"))
+				this.loadDataPropertiesProperties(json_obj_prop.getJSONArray("SubPropertyOf"), data_prop, "SubPropertyOf");
+			if (json_obj_prop.has("EquivalentTo"))
+				this.loadDataPropertiesProperties(json_obj_prop.getJSONArray("EquivalentTo"), data_prop, "EquivalentTo");
+			if (json_obj_prop.has("DisjointWith"))
+				this.loadDataPropertiesProperties(json_obj_prop.getJSONArray("DisjointWith"), data_prop, "DisjointWith");
+			if(json_obj_prop.has("Characteristics"))
+				this.loadDataPropertiesCharacteristcs(json_obj_prop.getJSONArray("Characteristics"), data_prop);
+			if(json_obj_prop.has("Domain"))
+				this.loadDataPropertiesDomainRange(json_obj_prop.getJSONArray("Domain"), data_prop, "Domain");
+			if(json_obj_prop.has("Range"))
+				this.loadDataPropertiesDomainRange(json_obj_prop.getJSONArray("Range"), data_prop, "Range");
+			if(json_obj_prop.has("Annotation"))
+				this.loadDataPropertyAnnotation(json_obj_prop.getJSONArray("Annotation"), data_prop);
+		}
+	}
+
 	private void loadObjectPropertiesDomainRange(JSONArray domain_range_array, OWLObjectProperty obj_prop, String domain_range){
 		OWLDataFactory df = OWLManager.getOWLDataFactory();
 		for (int i = 0; i < domain_range_array.length(); i++){
@@ -231,6 +283,57 @@ public class ElementosOWL {
 				this.ont.add(df.getOWLObjectPropertyDomainAxiom(obj_prop, cl));
 			else // Range
 				this.ont.add(df.getOWLObjectPropertyRangeAxiom(obj_prop, cl));
+		}
+	}
+
+	private void loadDataPropertiesDomainRange(JSONArray domain_range_array, OWLDataProperty data_prop, String domain_range){
+		OWLDataFactory df = OWLManager.getOWLDataFactory();
+		for (int i = 0; i < domain_range_array.length(); i++){
+			if (domain_range.equals("Domain")){
+				OWLClass cl = initClass(domain_range_array.getString(i));
+				this.ont.add(df.getOWLDataPropertyDomainAxiom(data_prop, cl));
+			}else{ // Range
+				String datatype = domain_range_array.getString(i);
+				switch (datatype) {
+					case "rdf:PlainLiteral":
+						this.ont.add(df.getOWLDataPropertyRangeAxiom(data_prop, df.getRDFPlainLiteral()));
+						break;
+					case "rdf:XMLLiteral":
+						this.ont.add(df.getOWLDataPropertyRangeAxiom(data_prop, df.getOWLDatatype(OWL2Datatype.RDF_XML_LITERAL.getIRI())));
+						break;
+					case "rdfs:Literal":
+						this.ont.add(df.getOWLDataPropertyRangeAxiom(data_prop, df.getOWLDatatype(OWL2Datatype.RDFS_LITERAL.getIRI())));
+						break;
+					case "xsd:string":
+						this.ont.add(df.getOWLDataPropertyRangeAxiom(data_prop, df.getStringOWLDatatype()));
+						break;
+					case "xsd:float":
+						this.ont.add(df.getOWLDataPropertyRangeAxiom(data_prop, df.getFloatOWLDatatype()));
+						break;
+					case "xsd:double":
+						this.ont.add(df.getOWLDataPropertyRangeAxiom(data_prop, df.getDoubleOWLDatatype()));
+						break;
+					case "xsd:boolean":
+						this.ont.add(df.getOWLDataPropertyRangeAxiom(data_prop, df.getBooleanOWLDatatype()));
+						break;
+					case "xsd:integer":
+						this.ont.add(df.getOWLDataPropertyRangeAxiom(data_prop, df.getIntegerOWLDatatype()));
+						break;
+					case "xsd:anyURI":
+						this.ont.add(df.getOWLDataPropertyRangeAxiom(data_prop, df.getOWLDatatype(OWL2Datatype.XSD_ANY_URI.getIRI())));
+						break;
+					case "owl:rational":
+						this.ont.add(df.getOWLDataPropertyRangeAxiom(data_prop, df.getOWLDatatype(OWL2Datatype.OWL_RATIONAL.getIRI())));
+						break;
+					case "owl:real":
+						this.ont.add(df.getOWLDataPropertyRangeAxiom(data_prop, df.getOWLDatatype(OWL2Datatype.OWL_RATIONAL.getIRI())));
+						break;
+					default:
+						break;
+				}
+					
+				
+			}
 		}
 	}
 
@@ -290,11 +393,38 @@ public class ElementosOWL {
 		}
 	}
 
+	private void loadDataPropertiesProperties(JSONArray prop_array, OWLDataProperty data_prop, String property){
+		OWLDataFactory df = OWLManager.getOWLDataFactory();
+		for (int i = 0; i < prop_array.length(); i++){
+			OWLDataProperty odataprop = this.initDataProperty(prop_array.get(i).toString());
+			switch (property) {
+				case "SubPropertyOf":
+					this.ont.addAxiom(df.getOWLSubDataPropertyOfAxiom(data_prop, odataprop));
+					break;
+				case "EquivalentTo":
+					this.ont.addAxiom(df.getOWLEquivalentDataPropertiesAxiom(data_prop, odataprop));
+					break;
+				case "DisjointWith":
+					this.ont.addAxiom(df.getOWLDisjointDataPropertiesAxiom(data_prop, odataprop));
+					break;
+				default:
+					break;
+			}
+		}
+	}
+
 	private OWLObjectProperty initObjectProperty(String name){
 		OWLDataFactory df = OWLManager.getOWLDataFactory();
 		PrefixManager pm = new DefaultPrefixManager(this.ont.getOntologyID().getOntologyIRI().get().toString());
 		return df.getOWLObjectProperty(name, pm);		
 	}
+
+	private OWLDataProperty initDataProperty(String name){
+		OWLDataFactory df = OWLManager.getOWLDataFactory();
+		PrefixManager pm = new DefaultPrefixManager(this.ont.getOntologyID().getOntologyIRI().get().toString());
+		return df.getOWLDataProperty(name, pm);		
+	}
+
 
 /* 	private Provider carregaProvider(){
 		Provider shortFormProvider = new Provider();
