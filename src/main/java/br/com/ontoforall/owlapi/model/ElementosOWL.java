@@ -73,6 +73,8 @@ public class ElementosOWL {
 				this.loadObjectProperties(json_arr.getJSONArray("object properties"));
 			if (json_arr.has("data properties"))
 				this.loadDataProperties(json_arr.getJSONArray("data properties"));
+			if (json_arr.has("individuals"))
+				this.loadIndividuals(json_arr.getJSONArray("individuals"));
 			if (json_arr.has("constraints"))
 				this.loadConstraints(json_arr.getJSONArray("constraints"));
 		}
@@ -95,6 +97,20 @@ public class ElementosOWL {
 			if (json_class.has("Annotation"))
 				this.loadClassAnnotation(json_class.getJSONArray("Annotation"), classe);
 		}
+	}
+
+	private void loadIndividuals(JSONArray json_individuals){
+		OWLDataFactory df = OWLManager.getOWLDataFactory();
+		for (int i = 0; i < json_individuals.length(); i++){
+			JSONObject json_individual = json_individuals.getJSONObject(i);
+			OWLNamedIndividual  individual = initIndividual(json_individual.getString("Name"));
+			this.ont.add(df.getOWLDeclarationAxiom(individual));
+			if (json_individual.has("Type"))
+				this.loadIndividualProperties(json_individual.getJSONArray("Type"), individual, "Types");
+			if (json_individual.has("SameAs"))
+				this.loadIndividualSameAsDifferentFrom(json_individual.getJSONArray("SameAs"), individual, "SameAs");
+			if (json_individual.has("DifferentFrom"))
+				this.loadIndividualSameAsDifferentFrom(json_individual.getJSONArray("DifferentFrom"), individual, "DifferentFrom");		}
 	}
 
 	private ManchesterOWLSyntaxParser loadParser(){
@@ -185,6 +201,20 @@ public class ElementosOWL {
 		}
 	}
 
+	private void loadIndividualProperties(JSONArray prop_array, OWLNamedIndividual ind, String property){
+		OWLDataFactory df = OWLManager.getOWLDataFactory();
+		for (int i = 0; i < prop_array.length(); i++){
+			switch (property) {
+				case "Type":
+					OWLClass oclass  = this.initClass(prop_array.get(i).toString());
+					this.ont.addAxiom(df.getOWLClassAssertionAxiom(oclass, ind));
+					break;
+				default:
+					break;
+			}
+		}
+	}
+
 	private void loadClassProperties(JSONArray prop_array, OWLClass cl, String property){
 		OWLDataFactory df = OWLManager.getOWLDataFactory();
 		for (int i = 0; i < prop_array.length(); i++){
@@ -211,6 +241,12 @@ public class ElementosOWL {
 		return df.getOWLClass(name, pm);
 	}
 
+	private OWLNamedIndividual initIndividual(String name){
+		OWLDataFactory df = OWLManager.getOWLDataFactory();
+		PrefixManager pm = new DefaultPrefixManager(this.ont.getOntologyID().getOntologyIRI().get().toString());
+		return df.getOWLNamedIndividual(name, pm);
+	}
+
 	private void loadObjectProperties(JSONArray json_obj_props){
 		OWLDataFactory df = OWLManager.getOWLDataFactory();
 		for (int i = 0; i < json_obj_props.length(); i++){
@@ -234,6 +270,20 @@ public class ElementosOWL {
 			if(json_obj_prop.has("Annotation"))
 				this.loadObjectPropertyAnnotation(json_obj_prop.getJSONArray("Annotation"), obj_prop);
 		}
+	}
+
+	private void loadIndividualSameAsDifferentFrom(JSONArray individuals, OWLNamedIndividual individual, String same_different){
+		OWLDataFactory df = OWLManager.getOWLDataFactory();
+		Set<OWLNamedIndividual> axioms = new HashSet<OWLNamedIndividual>();
+		axioms.add(df.getOWLNamedIndividual(individual));
+		for (int i = 0; i < individuals.length(); i++){
+			OWLNamedIndividual ind = initIndividual(individuals.getString(i));
+			axioms.add(df.getOWLNamedIndividual(ind));
+		}
+		if(same_different.equals("SameAs"))
+			this.ont.addAxioms(df.getOWLSameIndividualAxiom(axioms));
+		else if(same_different.equals("DifferentFrom"))
+			this.ont.addAxioms(df.getOWLDifferentIndividualsAxiom(axioms));
 	}
 
 	private void loadDataPropertiesCharacteristcs(JSONArray characs, OWLDataProperty data_prop){
