@@ -61,24 +61,53 @@ public class ElementosOWL {
 	private OWLOntology ont;
 	private OWLDocumentFormat filetype;
 
+	//JSON keys
+	private static final String FUNCTIONAL = "Functional";
+	private static final String CHARACTERISTICS = "Characteristics";
+	private static final String RANGE = "Range";
+	private static final String DOMAIN = "Domain";
+	private static final String INVERSE_OF = "InverseOf";
+	private static final String SUB_PROPERTY_OF = "SubPropertyOf";
+	private static final String TEXT = "Text";
+	private static final String LANGUAGE = "Language";
+	private static final String VALUE = "Value";
+	private static final String DATA_TYPE = "DataType";
+	private static final String DATA_PROPERTY = "DataProperty";
+	private static final String RELATIONSHIP = "Relationship";
+	private static final String DIFFERENT_FROM = "DifferentFrom";
+	private static final String SAME_AS = "SameAs";
+	private static final String TYPES = "Types";
+	private static final String EQUIVALENT_TO = "EquivalentTo";
+	private static final String DISJOINT_WITH = "DisjointWith";
+	private static final String ANNOTATION = "Annotation";
+	private static final String SUB_CLASS_OF = "SubClassOf";
+	private static final String NAME = "Name";
+	private static final String CONSTRAINTS = "constraints";
+	private static final String INDIVIDUALS = "individuals";
+	private static final String DATA_PROPERTIES = "data properties";
+	private static final String OBJECT_PROPERTIES = "object properties";
+	private static final String CLASSES = "classes";
+	private static final String FILETYPE = "filetype";
+	private static final String ID = "id";
+
 	public ElementosOWL(JSONObject json_arr) throws Exception{
-		if (!json_arr.has("id") || !json_arr.has("filetype"))
+		if (!json_arr.has(ID) || !json_arr.has(FILETYPE))
 			throw new Exception("ID ou Filetype está ausente.");
 		else{
-			this.filetype = carregaFormatoSaidaOntologia(json_arr.getString("filetype"));
-			IRI iri = IRI.create(json_arr.getString("id") + "/");
+			this.filetype = carregaFormatoSaidaOntologia(json_arr.getString(FILETYPE));
+			IRI iri = IRI.create(json_arr.getString(ID) + "/");
 			OWLOntologyManager owlManager = OWLManager.createOWLOntologyManager();
 			this.ont = owlManager.createOntology(iri);
-			if (json_arr.has("classes"))
-				this.loadClasses(json_arr.getJSONArray("classes"));
-			if (json_arr.has("object properties"))
-				this.loadObjectProperties(json_arr.getJSONArray("object properties"));
-			if (json_arr.has("data properties"))
-				this.loadDataProperties(json_arr.getJSONArray("data properties"));
-			if (json_arr.has("individuals"))
-				this.loadIndividuals(json_arr.getJSONArray("individuals"));
-			if (json_arr.has("constraints"))
-				this.loadConstraints(json_arr.getJSONArray("constraints"));
+			if (json_arr.has(CLASSES))
+				this.loadClasses(json_arr.getJSONArray(CLASSES));
+			if (json_arr.has(OBJECT_PROPERTIES))
+				this.loadObjectProperties(json_arr.getJSONArray(OBJECT_PROPERTIES));
+			if (json_arr.has(DATA_PROPERTIES))
+				this.loadDataProperties(json_arr.getJSONArray(DATA_PROPERTIES));
+			if (json_arr.has(INDIVIDUALS))
+				this.loadIndividuals(json_arr.getJSONArray(INDIVIDUALS));
+			if (json_arr.has(CONSTRAINTS))
+				this.loadConstraints(json_arr.getJSONArray(CONSTRAINTS));
 		}
 	}
 
@@ -88,16 +117,16 @@ public class ElementosOWL {
 		OWLDataFactory df = OWLManager.getOWLDataFactory();
 		for (int i = 0; i < json_classes.length(); i++){
 			JSONObject json_class = json_classes.getJSONObject(i);
-			OWLClass  classe = initClass(json_class.getString("Name"));
+			OWLClass  classe = initClass(json_class.getString(NAME));
 			this.ont.add(df.getOWLDeclarationAxiom(classe));
-			if (json_class.has("SubClassOf"))
-				this.loadClassProperties(json_class.getJSONArray("SubClassOf"), classe, "SubClassOf");
-			if (json_class.has("EquivalentTo"))
-				this.loadClassProperties(json_class.getJSONArray("EquivalentTo"), classe, "EquivalentTo");
-			if (json_class.has("DisjointWith"))
-				this.loadClassProperties(json_class.getJSONArray("DisjointWith"), classe, "DisjointWith");
-			if (json_class.has("Annotation"))
-				this.loadAnnotation(json_class.getJSONArray("Annotation"), classe, null, null, null);
+			if (json_class.has(SUB_CLASS_OF))
+				this.loadClassProperties(json_class.getJSONArray(SUB_CLASS_OF), classe, SUB_CLASS_OF);
+			if (json_class.has(EQUIVALENT_TO))
+				this.loadClassProperties(json_class.getJSONArray(EQUIVALENT_TO), classe, EQUIVALENT_TO);
+			if (json_class.has(DISJOINT_WITH))
+				this.loadClassProperties(json_class.getJSONArray(DISJOINT_WITH), classe, DISJOINT_WITH);
+			if (json_class.has(ANNOTATION))
+				this.loadAnnotation(json_class.getJSONArray(ANNOTATION), classe, null, null, null);
 		}
 	}
 
@@ -105,18 +134,18 @@ public class ElementosOWL {
 		OWLDataFactory df = OWLManager.getOWLDataFactory();
 		for (int i = 0; i < json_individuals.length(); i++){
 			JSONObject json_individual = json_individuals.getJSONObject(i);
-			OWLNamedIndividual  individual = initIndividual(json_individual.getString("Name"));
+			OWLNamedIndividual  individual = initIndividual(json_individual.getString(NAME));
 			this.ont.add(df.getOWLDeclarationAxiom(individual));
-			if (json_individual.has("Types"))
-				this.loadIndividualProperties(json_individual.getJSONArray("Types"), individual, "Types");
-			if (json_individual.has("SameAs"))
-				this.loadIndividualSameAsDifferentFrom(json_individual.getJSONArray("SameAs"), individual, "SameAs");
-			if (json_individual.has("DifferentFrom"))
-				this.loadIndividualSameAsDifferentFrom(json_individual.getJSONArray("DifferentFrom"), individual, "DifferentFrom");
-			if (json_individual.has("Relationship"))
-				this.loadIndividualRelationship(json_individual.getJSONArray("Relationship"), individual);
-			if (json_individual.has("Annotation"))
-				this.loadAnnotation(json_individual.getJSONArray("Annotation"), null, null, null, individual);	
+			if (json_individual.has(TYPES))
+				this.loadIndividualProperties(json_individual.getJSONArray(TYPES), individual, TYPES);
+			if (json_individual.has(SAME_AS))
+				this.loadIndividualSameAsDifferentFrom(json_individual.getJSONArray(SAME_AS), individual, SAME_AS);
+			if (json_individual.has(DIFFERENT_FROM))
+				this.loadIndividualSameAsDifferentFrom(json_individual.getJSONArray(DIFFERENT_FROM), individual, DIFFERENT_FROM);
+			if (json_individual.has(RELATIONSHIP))
+				this.loadIndividualRelationship(json_individual.getJSONArray(RELATIONSHIP), individual);
+			if (json_individual.has(ANNOTATION))
+				this.loadAnnotation(json_individual.getJSONArray(ANNOTATION), null, null, null, individual);	
 		}
 	}
 
@@ -124,9 +153,9 @@ public class ElementosOWL {
 		OWLDataFactory df = OWLManager.getOWLDataFactory();
 		for (int i = 0; i < json_relationships.length(); i++){
 			JSONObject rel = json_relationships.getJSONObject(i);
-			OWLDataProperty dp = initDataProperty(rel.getString("DataProperty"));
-			OWLDatatype datatype = initDataType(rel.getString("DataType"));
-			OWLLiteral lit = df.getOWLLiteral(rel.getString("Value"), datatype);
+			OWLDataProperty dp = initDataProperty(rel.getString(DATA_PROPERTY));
+			OWLDatatype datatype = initDataType(rel.getString(DATA_TYPE));
+			OWLLiteral lit = df.getOWLLiteral(rel.getString(VALUE), datatype);
 			this.ont.add(df.getOWLDataPropertyAssertionAxiom(dp, ind, lit));
 		}
 	}
@@ -243,8 +272,8 @@ public class ElementosOWL {
 		OWLDataFactory df = OWLManager.getOWLDataFactory();
 		for (int i = 0; i < anno_array.length(); i++){
 			JSONObject anno = anno_array.getJSONObject(i);
-			String language = anno.has("Language") ? anno.getString("Language"): "";
-			OWLLiteral lit = df.getOWLLiteral(anno.getString("Text"), language);
+			String lang = anno.has(LANGUAGE) ? anno.getString(LANGUAGE): "";
+			OWLLiteral lit = df.getOWLLiteral(anno.getString(TEXT), lang);
 			OWLAnnotation owl_anno = df.getOWLAnnotation(getAnnotation(anno.getString("Property")), lit);
 			if (cl != null)
 				this.ont.add(df.getOWLAnnotationAssertionAxiom(cl.getIRI(), owl_anno));
@@ -276,13 +305,13 @@ public class ElementosOWL {
 		for (int i = 0; i < prop_array.length(); i++){
 			OWLClass oclass  = this.initClass(prop_array.get(i).toString());
 			switch (property) {
-				case "SubClassOf":
+				case SUB_CLASS_OF:
 					this.ont.addAxiom(df.getOWLSubClassOfAxiom(cl, oclass));
 					break;
-				case "EquivalentTo":
+				case EQUIVALENT_TO:
 					this.ont.addAxiom(df.getOWLEquivalentClassesAxiom(cl, oclass));
 					break;
-				case "DisjointWith":
+				case DISJOINT_WITH:
 					this.ont.addAxiom(df.getOWLDisjointClassesAxiom(cl, oclass));
 					break;
 				default:
@@ -307,24 +336,24 @@ public class ElementosOWL {
 		OWLDataFactory df = OWLManager.getOWLDataFactory();
 		for (int i = 0; i < json_obj_props.length(); i++){
 			JSONObject json_obj_prop = json_obj_props.getJSONObject(i);
-			OWLObjectProperty  obj_prop = initObjectProperty(json_obj_prop.getString("Name"));
+			OWLObjectProperty  obj_prop = initObjectProperty(json_obj_prop.getString(NAME));
 			this.ont.add(df.getOWLDeclarationAxiom(obj_prop));
-			if (json_obj_prop.has("SubPropertyOf"))
-				this.loadObjectPropertiesProperties(json_obj_prop.getJSONArray("SubPropertyOf"), obj_prop, "SubPropertyOf");
-			if (json_obj_prop.has("EquivalentTo"))
-				this.loadObjectPropertiesProperties(json_obj_prop.getJSONArray("EquivalentTo"), obj_prop, "EquivalentTo");
-			if (json_obj_prop.has("DisjointWith"))
-				this.loadObjectPropertiesProperties(json_obj_prop.getJSONArray("DisjointWith"), obj_prop, "DisjointWith");
-			if (json_obj_prop.has("InverseOf"))
-				this.loadObjectPropertiesProperties(json_obj_prop.getJSONArray("InverseOf"), obj_prop, "InverseOf");
-			if(json_obj_prop.has("Characteristics"))
-				this.loadObjectPropertiesCharacteristcs(json_obj_prop.getJSONArray("Characteristics"), obj_prop);
-			if(json_obj_prop.has("Domain"))
-				this.loadObjectPropertiesDomainRange(json_obj_prop.getJSONArray("Domain"), obj_prop, "Domain");
-			if(json_obj_prop.has("Range"))
-				this.loadObjectPropertiesDomainRange(json_obj_prop.getJSONArray("Range"), obj_prop, "Range");
-			if(json_obj_prop.has("Annotation"))
-				this.loadAnnotation(json_obj_prop.getJSONArray("Annotation"), null, null, obj_prop, null);
+			if (json_obj_prop.has(SUB_PROPERTY_OF))
+				this.loadObjectPropertiesProperties(json_obj_prop.getJSONArray(SUB_PROPERTY_OF), obj_prop, SUB_PROPERTY_OF);
+			if (json_obj_prop.has(EQUIVALENT_TO))
+				this.loadObjectPropertiesProperties(json_obj_prop.getJSONArray(EQUIVALENT_TO), obj_prop, EQUIVALENT_TO);
+			if (json_obj_prop.has(DISJOINT_WITH))
+				this.loadObjectPropertiesProperties(json_obj_prop.getJSONArray(DISJOINT_WITH), obj_prop, DISJOINT_WITH);
+			if (json_obj_prop.has(INVERSE_OF))
+				this.loadObjectPropertiesProperties(json_obj_prop.getJSONArray(INVERSE_OF), obj_prop, INVERSE_OF);
+			if(json_obj_prop.has(CHARACTERISTICS))
+				this.loadObjectPropertiesCharacteristcs(json_obj_prop.getJSONArray(CHARACTERISTICS), obj_prop);
+			if(json_obj_prop.has(DOMAIN))
+				this.loadObjectPropertiesDomainRange(json_obj_prop.getJSONArray(DOMAIN), obj_prop, DOMAIN);
+			if(json_obj_prop.has(RANGE))
+				this.loadObjectPropertiesDomainRange(json_obj_prop.getJSONArray(RANGE), obj_prop, RANGE);
+			if(json_obj_prop.has(ANNOTATION))
+				this.loadAnnotation(json_obj_prop.getJSONArray(ANNOTATION), null, null, obj_prop, null);
 		}
 	}
 
@@ -336,9 +365,9 @@ public class ElementosOWL {
 			OWLNamedIndividual ind = initIndividual(individuals.getString(i));
 			axioms.add(df.getOWLNamedIndividual(ind));
 		}
-		if(same_different.equals("SameAs"))
+		if(same_different.equals(SAME_AS))
 			this.ont.addAxioms(df.getOWLSameIndividualAxiom(axioms));
-		else if(same_different.equals("DifferentFrom"))
+		else if(same_different.equals(DIFFERENT_FROM))
 			this.ont.addAxioms(df.getOWLDifferentIndividualsAxiom(axioms));
 	}
 
@@ -348,7 +377,7 @@ public class ElementosOWL {
 
 		for (int i = 0; i < characs.length(); i++){
 			switch (characs.getString(i)) {
-				case "Functional":
+				case FUNCTIONAL:
 					propAxioms.add(df.getOWLFunctionalDataPropertyAxiom(data_prop));
 					break;
 				default:
@@ -362,22 +391,22 @@ public class ElementosOWL {
 		OWLDataFactory df = OWLManager.getOWLDataFactory();
 		for (int i = 0; i < json_obj_props.length(); i++){
 			JSONObject json_obj_prop = json_obj_props.getJSONObject(i);
-			OWLDataProperty  data_prop = initDataProperty(json_obj_prop.getString("Name"));
+			OWLDataProperty  data_prop = initDataProperty(json_obj_prop.getString(NAME));
 			this.ont.add(df.getOWLDeclarationAxiom(data_prop));
-			if (json_obj_prop.has("SubPropertyOf"))
-				this.loadDataPropertiesProperties(json_obj_prop.getJSONArray("SubPropertyOf"), data_prop, "SubPropertyOf");
-			if (json_obj_prop.has("EquivalentTo"))
-				this.loadDataPropertiesProperties(json_obj_prop.getJSONArray("EquivalentTo"), data_prop, "EquivalentTo");
-			if (json_obj_prop.has("DisjointWith"))
-				this.loadDataPropertiesProperties(json_obj_prop.getJSONArray("DisjointWith"), data_prop, "DisjointWith");
-			if(json_obj_prop.has("Characteristics"))
-				this.loadDataPropertiesCharacteristcs(json_obj_prop.getJSONArray("Characteristics"), data_prop);
-			if(json_obj_prop.has("Domain"))
-				this.loadDataPropertiesDomainRange(json_obj_prop.getJSONArray("Domain"), data_prop, "Domain");
-			if(json_obj_prop.has("Range"))
-				this.loadDataPropertiesDomainRange(json_obj_prop.getJSONArray("Range"), data_prop, "Range");
-			if(json_obj_prop.has("Annotation"))
-				this.loadAnnotation(json_obj_prop.getJSONArray("Annotation"), null, data_prop, null, null);
+			if (json_obj_prop.has(SUB_PROPERTY_OF))
+				this.loadDataPropertiesProperties(json_obj_prop.getJSONArray(SUB_PROPERTY_OF), data_prop, SUB_PROPERTY_OF);
+			if (json_obj_prop.has(EQUIVALENT_TO))
+				this.loadDataPropertiesProperties(json_obj_prop.getJSONArray(EQUIVALENT_TO), data_prop, EQUIVALENT_TO);
+			if (json_obj_prop.has(DISJOINT_WITH))
+				this.loadDataPropertiesProperties(json_obj_prop.getJSONArray(DISJOINT_WITH), data_prop, DISJOINT_WITH);
+			if(json_obj_prop.has(CHARACTERISTICS))
+				this.loadDataPropertiesCharacteristcs(json_obj_prop.getJSONArray(CHARACTERISTICS), data_prop);
+			if(json_obj_prop.has(DOMAIN))
+				this.loadDataPropertiesDomainRange(json_obj_prop.getJSONArray(DOMAIN), data_prop, DOMAIN);
+			if(json_obj_prop.has(RANGE))
+				this.loadDataPropertiesDomainRange(json_obj_prop.getJSONArray(RANGE), data_prop, RANGE);
+			if(json_obj_prop.has(ANNOTATION))
+				this.loadAnnotation(json_obj_prop.getJSONArray(ANNOTATION), null, data_prop, null, null);
 		}
 	}
 
@@ -385,7 +414,7 @@ public class ElementosOWL {
 		OWLDataFactory df = OWLManager.getOWLDataFactory();
 		for (int i = 0; i < domain_range_array.length(); i++){
 			OWLClass cl = initClass(domain_range_array.getString(i));
-			if (domain_range.equals("Domain"))
+			if (domain_range.equals(DOMAIN))
 				this.ont.add(df.getOWLObjectPropertyDomainAxiom(obj_prop, cl));
 			else // Range
 				this.ont.add(df.getOWLObjectPropertyRangeAxiom(obj_prop, cl));
@@ -395,7 +424,7 @@ public class ElementosOWL {
 	private void loadDataPropertiesDomainRange(JSONArray domain_range_array, OWLDataProperty data_prop, String domain_range){
 		OWLDataFactory df = OWLManager.getOWLDataFactory();
 		for (int i = 0; i < domain_range_array.length(); i++){
-			if (domain_range.equals("Domain")){
+			if (domain_range.equals(DOMAIN)){
 				OWLClass cl = initClass(domain_range_array.getString(i));
 				this.ont.add(df.getOWLDataPropertyDomainAxiom(data_prop, cl));
 			}else // Range
@@ -409,7 +438,7 @@ public class ElementosOWL {
 
 		for (int i = 0; i < characs.length(); i++){
 			switch (characs.getString(i)) {
-				case "Functional":
+				case FUNCTIONAL:
 					propAxioms.add(df.getOWLFunctionalObjectPropertyAxiom(obj_prop));
 					break;
 				case "Inverse Functional":
@@ -442,16 +471,16 @@ public class ElementosOWL {
 		for (int i = 0; i < prop_array.length(); i++){
 			OWLObjectProperty oobjprop = this.initObjectProperty(prop_array.get(i).toString());
 			switch (property) {
-				case "SubPropertyOf":
+				case SUB_PROPERTY_OF:
 					this.ont.addAxiom(df.getOWLSubObjectPropertyOfAxiom(obj_prop, oobjprop));
 					break;
-				case "EquivalentTo":
+				case EQUIVALENT_TO:
 					this.ont.addAxiom(df.getOWLEquivalentObjectPropertiesAxiom(obj_prop, oobjprop));
 					break;
-				case "DisjointWith":
+				case DISJOINT_WITH:
 					this.ont.addAxiom(df.getOWLDisjointObjectPropertiesAxiom(obj_prop, oobjprop));
 					break;
-				case "InverseOf":
+				case INVERSE_OF:
 					this.ont.addAxiom(df.getOWLInverseObjectPropertiesAxiom(obj_prop, oobjprop));
 				default:
 					break;
@@ -464,13 +493,13 @@ public class ElementosOWL {
 		for (int i = 0; i < prop_array.length(); i++){
 			OWLDataProperty odataprop = this.initDataProperty(prop_array.get(i).toString());
 			switch (property) {
-				case "SubPropertyOf":
+				case SUB_PROPERTY_OF:
 					this.ont.addAxiom(df.getOWLSubDataPropertyOfAxiom(data_prop, odataprop));
 					break;
-				case "EquivalentTo":
+				case EQUIVALENT_TO:
 					this.ont.addAxiom(df.getOWLEquivalentDataPropertiesAxiom(data_prop, odataprop));
 					break;
-				case "DisjointWith":
+				case DISJOINT_WITH:
 					this.ont.addAxiom(df.getOWLDisjointDataPropertiesAxiom(data_prop, odataprop));
 					break;
 				default:
