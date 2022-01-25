@@ -1,6 +1,6 @@
 package br.com.ontoforall.owlapi.resources;
 
-import br.com.ontoforall.owlapi.model.ElementosOWL;
+import br.com.ontoforall.owlapi.model.OntologyExporter;
 import br.com.ontoforall.owlapi.model.Info;
 
 import javax.ws.rs.Consumes;
@@ -14,7 +14,6 @@ import javax.ws.rs.core.Response.Status;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
 @Path("ontology")
 public class Rotas {
@@ -38,7 +37,7 @@ public class Rotas {
 		return Response.status(Status.ACCEPTED).entity(info.getInfo()).build();
 	}
 
-	@POST
+/*	@POST
 	@Path("valid")
 	@Produces(MediaType.TEXT_PLAIN)
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -46,19 +45,19 @@ public class Rotas {
 		ElementosOWL elementos = new ElementosOWL(new JSONObject(ontologia));
 		String resp = elementos.validaOWL();
 		return Response.status(Status.ACCEPTED).entity(resp).build();
-	}
+	}*/
 
 	@POST
 	@Path("format")
 	@Produces(MediaType.TEXT_PLAIN)
 	@Consumes(MediaType.APPLICATION_JSON)
-	public Response formata(String ontologia) throws JSONException, Exception {
-		ElementosOWL elementos = new ElementosOWL(new JSONObject(ontologia));
-		String resp = elementos.formataOWL();
+	public Response formata(String ontology) throws JSONException, Exception {
+		OntologyExporter ont = new OntologyExporter(new JSONObject(ontology));
+		String resp = ont.exportOntology();
 		return Response.status(Status.ACCEPTED).entity(resp).build();
 	}
 
-	@POST
+/*	@POST
 	@Path("read")
 	@Produces(MediaType.TEXT_PLAIN)
 	@Consumes(MediaType.APPLICATION_XML)
@@ -68,5 +67,5 @@ public class Rotas {
 		return Response.status(Status.ACCEPTED)
 						.entity(resp)
 						.build();
-	}
+	}*/
 }
