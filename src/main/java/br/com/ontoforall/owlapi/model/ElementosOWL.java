@@ -43,6 +43,7 @@ import org.semanticweb.owlapi.model.OWLDataProperty;
 import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLEntity;
+import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
@@ -53,6 +54,7 @@ import org.semanticweb.owlapi.model.PrefixManager;
 import org.semanticweb.owlapi.util.DefaultPrefixManager;
 import org.semanticweb.owlapi.util.mansyntax.ManchesterOWLSyntaxParser;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
+import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 public class ElementosOWL {
 
@@ -105,12 +107,59 @@ public class ElementosOWL {
 			JSONObject json_individual = json_individuals.getJSONObject(i);
 			OWLNamedIndividual  individual = initIndividual(json_individual.getString("Name"));
 			this.ont.add(df.getOWLDeclarationAxiom(individual));
-			if (json_individual.has("Type"))
-				this.loadIndividualProperties(json_individual.getJSONArray("Type"), individual, "Types");
+			if (json_individual.has("Types"))
+				this.loadIndividualProperties(json_individual.getJSONArray("Types"), individual, "Types");
 			if (json_individual.has("SameAs"))
 				this.loadIndividualSameAsDifferentFrom(json_individual.getJSONArray("SameAs"), individual, "SameAs");
 			if (json_individual.has("DifferentFrom"))
-				this.loadIndividualSameAsDifferentFrom(json_individual.getJSONArray("DifferentFrom"), individual, "DifferentFrom");		}
+				this.loadIndividualSameAsDifferentFrom(json_individual.getJSONArray("DifferentFrom"), individual, "DifferentFrom");
+			if (json_individual.has("Relationship"))
+				this.loadIndividualRelationship(json_individual.getJSONArray("Relationship"), individual);
+			if (json_individual.has("Annotation"))
+				this.loadIndividualAnnotation(json_individual.getJSONArray("Annotation"), individual);	
+		}
+	}
+
+	private void loadIndividualRelationship(JSONArray json_relationships, OWLIndividual ind){
+		OWLDataFactory df = OWLManager.getOWLDataFactory();
+		for (int i = 0; i < json_relationships.length(); i++){
+			JSONObject rel = json_relationships.getJSONObject(i);
+			OWLDataProperty dp = initDataProperty(rel.getString("DataProperty"));
+			OWLDatatype datatype = initDataType(rel.getString("DataType"));
+			OWLLiteral lit = df.getOWLLiteral(rel.getString("Value"), datatype);
+			this.ont.add(df.getOWLDataPropertyAssertionAxiom(dp, ind, lit));
+		}
+	}
+
+	private OWLDatatype initDataType(String datatype){
+		OWLDataFactory df = OWLManager.getOWLDataFactory();
+		switch (datatype) {
+			case "rdf:PlainLiteral":
+				return df.getRDFPlainLiteral();
+			case "rdf:XMLLiteral":
+				return df.getOWLDatatype(OWL2Datatype.RDF_XML_LITERAL.getIRI());
+			case "rdfs:Literal":
+				return df.getOWLDatatype(OWL2Datatype.RDFS_LITERAL.getIRI());
+			case "xsd:string":
+				return df.getStringOWLDatatype();
+			case "xsd:float":
+				return df.getFloatOWLDatatype();
+			case "xsd:double":
+				return df.getDoubleOWLDatatype();
+			case "xsd:boolean":
+				return df.getBooleanOWLDatatype();
+			case "xsd:integer":
+				return df.getIntegerOWLDatatype();
+			case "xsd:anyURI":
+				return df.getOWLDatatype(OWL2Datatype.XSD_ANY_URI.getIRI());
+			case "owl:rational":
+				return df.getOWLDatatype(OWL2Datatype.OWL_RATIONAL.getIRI());
+			case "owl:real":
+				return df.getOWLDatatype(OWL2Datatype.OWL_RATIONAL.getIRI());
+			default:
+				return null;
+		}
+		
 	}
 
 	private ManchesterOWLSyntaxParser loadParser(){
@@ -171,22 +220,54 @@ public class ElementosOWL {
 		}
 	}
 
+	private OWLAnnotationProperty getAnnotation(String anno){
+		OWLDataFactory df = OWLManager.getOWLDataFactory();
+		switch (anno) {
+			case "rdfs:comment":
+				return df.getRDFSComment();
+			case "rdfs:label":
+				return df.getRDFSLabel();
+			case "rdfs:isDefinedBy":
+				return df.getRDFSIsDefinedBy();
+			case "owl:priorVersion":
+				return df.getOWLAnnotationProperty(OWLRDFVocabulary.OWL_PRIOR_VERSION.getIRI());
+			case "owl:versionInfo":
+				return df.getOWLAnnotationProperty(OWLRDFVocabulary.OWL_VERSION_INFO.getIRI());
+			default:
+				return null;
+		}
+	}
+
 	private void loadClassAnnotation(JSONArray anno_array, OWLClass cl){
 		OWLDataFactory df = OWLManager.getOWLDataFactory();
 		for (int i = 0; i < anno_array.length(); i++){
 			JSONObject anno = anno_array.getJSONObject(i);
-			OWLLiteral lit = df.getOWLLiteral(anno.getString("Comment"), anno.getString("Language"));
-			OWLAnnotation owl_anno = df.getOWLAnnotation(df.getRDFSComment(), lit);
+			String language = anno.has("Language") ? anno.getString("Language"): "";
+			OWLLiteral lit = df.getOWLLiteral(anno.getString("Text"), language);
+			OWLAnnotation owl_anno = df.getOWLAnnotation(getAnnotation(anno.getString("Property")), lit);
 			this.ont.add(df.getOWLAnnotationAssertionAxiom(cl.getIRI(), owl_anno));
 		}
 	}
+
+	private void loadIndividualAnnotation(JSONArray anno_array, OWLNamedIndividual ind){
+		OWLDataFactory df = OWLManager.getOWLDataFactory();
+		for (int i = 0; i < anno_array.length(); i++){
+			JSONObject anno = anno_array.getJSONObject(i);
+			String language = anno.has("Language") ? anno.getString("Language"): "";
+			OWLLiteral lit = df.getOWLLiteral(anno.getString("Text"), language);
+			OWLAnnotation owl_anno = df.getOWLAnnotation(getAnnotation(anno.getString("Property")), lit);
+			this.ont.add(df.getOWLAnnotationAssertionAxiom(ind.getIRI(), owl_anno));
+		}
+	}
+
 
 	private void loadObjectPropertyAnnotation(JSONArray anno_array, OWLObjectProperty obj_prop){
 		OWLDataFactory df = OWLManager.getOWLDataFactory();
 		for (int i = 0; i < anno_array.length(); i++){
 			JSONObject anno = anno_array.getJSONObject(i);
-			OWLLiteral lit = df.getOWLLiteral(anno.getString("Comment"), anno.getString("Language"));
-			OWLAnnotation owl_anno = df.getOWLAnnotation(df.getRDFSComment(), lit);
+			String language = anno.has("Language") ? anno.getString("Language"): "";
+			OWLLiteral lit = df.getOWLLiteral(anno.getString("Text"), language);
+			OWLAnnotation owl_anno = df.getOWLAnnotation(getAnnotation(anno.getString("Property")), lit);
 			this.ont.add(df.getOWLAnnotationAssertionAxiom(obj_prop.getIRI(), owl_anno));
 		}
 	}
@@ -195,8 +276,9 @@ public class ElementosOWL {
 		OWLDataFactory df = OWLManager.getOWLDataFactory();
 		for (int i = 0; i < anno_array.length(); i++){
 			JSONObject anno = anno_array.getJSONObject(i);
-			OWLLiteral lit = df.getOWLLiteral(anno.getString("Comment"), anno.getString("Language"));
-			OWLAnnotation owl_anno = df.getOWLAnnotation(df.getRDFSComment(), lit);
+			String language = anno.has("Language") ? anno.getString("Language"): "";
+			OWLLiteral lit = df.getOWLLiteral(anno.getString("Text"), language);
+			OWLAnnotation owl_anno = df.getOWLAnnotation(getAnnotation(anno.getString("Property")), lit);
 			this.ont.add(df.getOWLAnnotationAssertionAxiom(data_prop.getIRI(), owl_anno));
 		}
 	}
@@ -342,48 +424,8 @@ public class ElementosOWL {
 			if (domain_range.equals("Domain")){
 				OWLClass cl = initClass(domain_range_array.getString(i));
 				this.ont.add(df.getOWLDataPropertyDomainAxiom(data_prop, cl));
-			}else{ // Range
-				String datatype = domain_range_array.getString(i);
-				switch (datatype) {
-					case "rdf:PlainLiteral":
-						this.ont.add(df.getOWLDataPropertyRangeAxiom(data_prop, df.getRDFPlainLiteral()));
-						break;
-					case "rdf:XMLLiteral":
-						this.ont.add(df.getOWLDataPropertyRangeAxiom(data_prop, df.getOWLDatatype(OWL2Datatype.RDF_XML_LITERAL.getIRI())));
-						break;
-					case "rdfs:Literal":
-						this.ont.add(df.getOWLDataPropertyRangeAxiom(data_prop, df.getOWLDatatype(OWL2Datatype.RDFS_LITERAL.getIRI())));
-						break;
-					case "xsd:string":
-						this.ont.add(df.getOWLDataPropertyRangeAxiom(data_prop, df.getStringOWLDatatype()));
-						break;
-					case "xsd:float":
-						this.ont.add(df.getOWLDataPropertyRangeAxiom(data_prop, df.getFloatOWLDatatype()));
-						break;
-					case "xsd:double":
-						this.ont.add(df.getOWLDataPropertyRangeAxiom(data_prop, df.getDoubleOWLDatatype()));
-						break;
-					case "xsd:boolean":
-						this.ont.add(df.getOWLDataPropertyRangeAxiom(data_prop, df.getBooleanOWLDatatype()));
-						break;
-					case "xsd:integer":
-						this.ont.add(df.getOWLDataPropertyRangeAxiom(data_prop, df.getIntegerOWLDatatype()));
-						break;
-					case "xsd:anyURI":
-						this.ont.add(df.getOWLDataPropertyRangeAxiom(data_prop, df.getOWLDatatype(OWL2Datatype.XSD_ANY_URI.getIRI())));
-						break;
-					case "owl:rational":
-						this.ont.add(df.getOWLDataPropertyRangeAxiom(data_prop, df.getOWLDatatype(OWL2Datatype.OWL_RATIONAL.getIRI())));
-						break;
-					case "owl:real":
-						this.ont.add(df.getOWLDataPropertyRangeAxiom(data_prop, df.getOWLDatatype(OWL2Datatype.OWL_RATIONAL.getIRI())));
-						break;
-					default:
-						break;
-				}
-					
-				
-			}
+			}else // Range
+				this.ont.add(df.getOWLDataPropertyRangeAxiom(data_prop, initDataType(domain_range_array.getString(i))));
 		}
 	}
 
@@ -476,23 +518,6 @@ public class ElementosOWL {
 	}
 
 
-/* 	private Provider carregaProvider(){
-		Provider shortFormProvider = new Provider();
-		OWLDataFactory df = OWLManager.getOWLDataFactory();
-
-		// Carrega as Classes
-		for (int i = 0; i < this.classes.length(); i++)
-		shortFormProvider.add(df.getOWLClass(IRI.create(this.id + this.classes.get(i))));
-
-		//Carrega as Propriedades
-		for (int i = 0; i < this.propriedades.length(); i++)
-			shortFormProvider.add(df.getOWLDataProperty(IRI.create(this.id + this.propriedades.get(i))));
-
-		//Carrega os individuos
-		for (int i = 0; i < this.individuos.length(); i++)
-			shortFormProvider.add(df.getOWLNamedIndividual(IRI.create(this.id + this.individuos.get(i))));
-		return shortFormProvider;
-	} */
 
 	/**
 	 * Valida se a estrutura da modelagem da ontologia é válida 
@@ -596,7 +621,7 @@ public class ElementosOWL {
 				return new KRSS2DocumentFormat();
 			case "DOCUMENTOLATEX":
 				return new LatexDocumentFormat();
-				case "N3":
+			case "N3":
 				return new N3DocumentFormat();
 			case "SINTAXEMANCHESTER":
 				return new ManchesterSyntaxDocumentFormat();
