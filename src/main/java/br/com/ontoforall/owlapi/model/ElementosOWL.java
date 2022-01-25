@@ -97,7 +97,7 @@ public class ElementosOWL {
 			if (json_class.has("DisjointWith"))
 				this.loadClassProperties(json_class.getJSONArray("DisjointWith"), classe, "DisjointWith");
 			if (json_class.has("Annotation"))
-				this.loadClassAnnotation(json_class.getJSONArray("Annotation"), classe);
+				this.loadAnnotation(json_class.getJSONArray("Annotation"), classe, null, null, null);
 		}
 	}
 
@@ -116,7 +116,7 @@ public class ElementosOWL {
 			if (json_individual.has("Relationship"))
 				this.loadIndividualRelationship(json_individual.getJSONArray("Relationship"), individual);
 			if (json_individual.has("Annotation"))
-				this.loadIndividualAnnotation(json_individual.getJSONArray("Annotation"), individual);	
+				this.loadAnnotation(json_individual.getJSONArray("Annotation"), null, null, null, individual);	
 		}
 	}
 
@@ -238,49 +238,23 @@ public class ElementosOWL {
 		}
 	}
 
-	private void loadClassAnnotation(JSONArray anno_array, OWLClass cl){
+	private void loadAnnotation(JSONArray anno_array, OWLClass cl, OWLDataProperty data_prop, 
+	OWLObjectProperty obj_prop, OWLNamedIndividual ind){
 		OWLDataFactory df = OWLManager.getOWLDataFactory();
 		for (int i = 0; i < anno_array.length(); i++){
 			JSONObject anno = anno_array.getJSONObject(i);
 			String language = anno.has("Language") ? anno.getString("Language"): "";
 			OWLLiteral lit = df.getOWLLiteral(anno.getString("Text"), language);
 			OWLAnnotation owl_anno = df.getOWLAnnotation(getAnnotation(anno.getString("Property")), lit);
-			this.ont.add(df.getOWLAnnotationAssertionAxiom(cl.getIRI(), owl_anno));
-		}
-	}
-
-	private void loadIndividualAnnotation(JSONArray anno_array, OWLNamedIndividual ind){
-		OWLDataFactory df = OWLManager.getOWLDataFactory();
-		for (int i = 0; i < anno_array.length(); i++){
-			JSONObject anno = anno_array.getJSONObject(i);
-			String language = anno.has("Language") ? anno.getString("Language"): "";
-			OWLLiteral lit = df.getOWLLiteral(anno.getString("Text"), language);
-			OWLAnnotation owl_anno = df.getOWLAnnotation(getAnnotation(anno.getString("Property")), lit);
-			this.ont.add(df.getOWLAnnotationAssertionAxiom(ind.getIRI(), owl_anno));
-		}
-	}
-
-
-	private void loadObjectPropertyAnnotation(JSONArray anno_array, OWLObjectProperty obj_prop){
-		OWLDataFactory df = OWLManager.getOWLDataFactory();
-		for (int i = 0; i < anno_array.length(); i++){
-			JSONObject anno = anno_array.getJSONObject(i);
-			String language = anno.has("Language") ? anno.getString("Language"): "";
-			OWLLiteral lit = df.getOWLLiteral(anno.getString("Text"), language);
-			OWLAnnotation owl_anno = df.getOWLAnnotation(getAnnotation(anno.getString("Property")), lit);
-			this.ont.add(df.getOWLAnnotationAssertionAxiom(obj_prop.getIRI(), owl_anno));
-		}
-	}
-
-	private void loadDataPropertyAnnotation(JSONArray anno_array, OWLDataProperty data_prop){
-		OWLDataFactory df = OWLManager.getOWLDataFactory();
-		for (int i = 0; i < anno_array.length(); i++){
-			JSONObject anno = anno_array.getJSONObject(i);
-			String language = anno.has("Language") ? anno.getString("Language"): "";
-			OWLLiteral lit = df.getOWLLiteral(anno.getString("Text"), language);
-			OWLAnnotation owl_anno = df.getOWLAnnotation(getAnnotation(anno.getString("Property")), lit);
-			this.ont.add(df.getOWLAnnotationAssertionAxiom(data_prop.getIRI(), owl_anno));
-		}
+			if (cl != null)
+				this.ont.add(df.getOWLAnnotationAssertionAxiom(cl.getIRI(), owl_anno));
+			else if(data_prop != null)
+				this.ont.add(df.getOWLAnnotationAssertionAxiom(data_prop.getIRI(), owl_anno));
+			else if(obj_prop != null)
+				this.ont.add(df.getOWLAnnotationAssertionAxiom(obj_prop.getIRI(), owl_anno));
+			else if(ind != null)
+				this.ont.add(df.getOWLAnnotationAssertionAxiom(ind.getIRI(), owl_anno));
+		}		
 	}
 
 	private void loadIndividualProperties(JSONArray prop_array, OWLNamedIndividual ind, String property){
@@ -350,7 +324,7 @@ public class ElementosOWL {
 			if(json_obj_prop.has("Range"))
 				this.loadObjectPropertiesDomainRange(json_obj_prop.getJSONArray("Range"), obj_prop, "Range");
 			if(json_obj_prop.has("Annotation"))
-				this.loadObjectPropertyAnnotation(json_obj_prop.getJSONArray("Annotation"), obj_prop);
+				this.loadAnnotation(json_obj_prop.getJSONArray("Annotation"), null, null, obj_prop, null);
 		}
 	}
 
@@ -403,7 +377,7 @@ public class ElementosOWL {
 			if(json_obj_prop.has("Range"))
 				this.loadDataPropertiesDomainRange(json_obj_prop.getJSONArray("Range"), data_prop, "Range");
 			if(json_obj_prop.has("Annotation"))
-				this.loadDataPropertyAnnotation(json_obj_prop.getJSONArray("Annotation"), data_prop);
+				this.loadAnnotation(json_obj_prop.getJSONArray("Annotation"), null, data_prop, null, null);
 		}
 	}
 
