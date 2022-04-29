@@ -37,15 +37,16 @@ public class Rotas {
 		return Response.status(Status.ACCEPTED).entity(info.getInfo()).build();
 	}
 
-/*	@POST
+	@POST
 	@Path("valid")
 	@Produces(MediaType.TEXT_PLAIN)
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response validacao(String ontologia) throws JSONException, Exception {
-		ElementosOWL elementos = new ElementosOWL(new JSONObject(ontologia));
-		String resp = elementos.validaOWL();
+//		ElementosOWL elementos = new ElementosOWL(new JSONObject(ontologia));
+//		String resp = elementos.validaOWL();
+		String resp = Boolean.toString(true);
 		return Response.status(Status.ACCEPTED).entity(resp).build();
-	}*/
+	}
 
 	@POST
 	@Path("format")
