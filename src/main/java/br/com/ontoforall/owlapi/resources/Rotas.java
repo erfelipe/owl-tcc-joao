@@ -34,7 +34,7 @@ public class Rotas {
 	public Response info() {
 		Info info = new Info();
 
-		return Response.status(Status.ACCEPTED).entity(info.getInfo()).build();
+		return Response.status(Status.ACCEPTED).entity(info.getInfo()).header("Access-Control-Allow-Origin", "*").build();
 	}
 
 	@POST
@@ -44,8 +44,8 @@ public class Rotas {
 	public Response validacao(String ontologia) throws JSONException, Exception {
 //		ElementosOWL elementos = new ElementosOWL(new JSONObject(ontologia));
 //		String resp = elementos.validaOWL();
-		String resp = Boolean.toString(true);
-		return Response.status(Status.ACCEPTED).entity(resp).build();
+		String resp = Boolean.TRUE.toString();
+		return Response.status(Status.ACCEPTED).entity(resp).header("Access-Control-Allow-Origin", "*").build();
 	}
 
 	@POST
@@ -55,7 +55,7 @@ public class Rotas {
 	public Response formata(String ontology) throws JSONException, Exception {
 		OntologyExporter ont = new OntologyExporter(new JSONObject(ontology));
 		String resp = ont.exportOntology();
-		return Response.status(Status.ACCEPTED).entity(resp).build();
+		return Response.status(Status.ACCEPTED).entity(resp).header("Access-Control-Allow-Origin", "*").build();
 	}
 
 /*	@POST
