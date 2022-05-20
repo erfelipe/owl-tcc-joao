@@ -11,6 +11,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.ext.Provider;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -38,14 +39,26 @@ public class Rotas {
 	}
 
 	@POST
-	@Path("valid")
+	@Path("valid")	
 	@Produces(MediaType.TEXT_PLAIN)
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response validacao(String ontologia) throws JSONException, Exception {
 //		ElementosOWL elementos = new ElementosOWL(new JSONObject(ontologia));
 //		String resp = elementos.validaOWL();
 		String resp = Boolean.TRUE.toString();
-		return Response.status(Status.ACCEPTED).entity(resp).header("Access-Control-Allow-Origin", "*").build();
+		
+		return Response.status(Status.ACCEPTED).entity(resp).header("Access-Control-Allow-Origin", "https://onto4all.com").build();
+	}
+
+	@POST
+	@Path("valid2")	
+	@Produces(MediaType.TEXT_PLAIN)
+	@Consumes(MediaType.TEXT_PLAIN)
+	public Response validacao2(String ontologia) throws JSONException, Exception {
+//		ElementosOWL elementos = new ElementosOWL(new JSONObject(ontologia));
+//		String resp = elementos.validaOWL();
+		String resp = Boolean.TRUE.toString();
+		return Response.status(Status.ACCEPTED).entity(resp).build();
 	}
 
 	@POST
@@ -70,3 +83,4 @@ public class Rotas {
 						.build();
 	}*/
 }
+
