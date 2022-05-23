@@ -25,8 +25,9 @@ public class Rotas {
 
 	@GET
 	@Produces(MediaType.TEXT_PLAIN)
-	public String funciona() {
-		return Boolean.TRUE.toString();
+	public Response funciona() {
+		String resp = Boolean.TRUE.toString();
+		return Response.status(Status.ACCEPTED).entity(resp).build();
 	}
 
 	@GET
@@ -35,23 +36,23 @@ public class Rotas {
 	public Response info() {
 		Info info = new Info();
 
-		return Response.status(Status.ACCEPTED).entity(info.getInfo()).header("Access-Control-Allow-Origin", "*").build();
+		return Response.status(Status.ACCEPTED).entity(info.getInfo()).build();
 	}
 
 	@POST
-	@Path("valid")	
+	@Path("valid")
 	@Produces(MediaType.TEXT_PLAIN)
-	@Consumes(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.TEXT_PLAIN)
 	public Response validacao(String ontologia) throws JSONException, Exception {
 //		ElementosOWL elementos = new ElementosOWL(new JSONObject(ontologia));
 //		String resp = elementos.validaOWL();
 		String resp = Boolean.TRUE.toString();
-		
-		return Response.status(Status.ACCEPTED).entity(resp).header("Access-Control-Allow-Origin", "https://onto4all.com").build();
+
+		return Response.status(Status.OK).entity(resp).build();
 	}
 
 	@POST
-	@Path("valid2")	
+	@Path("valid2")
 	@Produces(MediaType.TEXT_PLAIN)
 	@Consumes(MediaType.TEXT_PLAIN)
 	public Response validacao2(String ontologia) throws JSONException, Exception {
@@ -64,23 +65,23 @@ public class Rotas {
 	@POST
 	@Path("format")
 	@Produces(MediaType.TEXT_PLAIN)
-	@Consumes(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.TEXT_PLAIN)
 	public Response formata(String ontology) throws JSONException, Exception {
 		OntologyExporter ont = new OntologyExporter(new JSONObject(ontology));
 		String resp = ont.exportOntology();
-		return Response.status(Status.ACCEPTED).entity(resp).header("Access-Control-Allow-Origin", "*").build();
+		return Response.status(Status.ACCEPTED).entity(resp).build();
 	}
 
-/*	@POST
-	@Path("read")
-	@Produces(MediaType.TEXT_PLAIN)
-	@Consumes(MediaType.APPLICATION_XML)
-	public Response readFromOWL(String ontologia) throws OWLOntologyCreationException {
-		ElementosOWL elementos = new ElementosOWL();
-		String resp = elementos.readFromOWL(ontologia);
-		return Response.status(Status.ACCEPTED)
-						.entity(resp)
-						.build();
-	}*/
+	/*
+	 * @POST
+	 * 
+	 * @Path("read")
+	 * 
+	 * @Produces(MediaType.TEXT_PLAIN)
+	 * 
+	 * @Consumes(MediaType.APPLICATION_XML) public Response readFromOWL(String
+	 * ontologia) throws OWLOntologyCreationException { ElementosOWL elementos = new
+	 * ElementosOWL(); String resp = elementos.readFromOWL(ontologia); return
+	 * Response.status(Status.ACCEPTED) .entity(resp) .build(); }
+	 */
 }
-
