@@ -47,7 +47,7 @@ public class Rotas {
 //		String resp = elementos.validaOWL();
 		String resp = Boolean.TRUE.toString();
 		
-		return Response.status(Status.ACCEPTED).entity(resp).header("Access-Control-Allow-Origin", "https://onto4all.com").build();
+		return Response.status(Status.ACCEPTED).entity(resp).header("Access-Control-Allow-Origin", "*").build();
 	}
 
 	@POST
