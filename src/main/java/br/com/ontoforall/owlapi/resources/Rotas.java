@@ -11,8 +11,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.ext.Provider;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -49,6 +47,7 @@ public class Rotas {
 		String resp = Boolean.TRUE.toString();
 
 		return Response.status(Status.OK).entity(resp).build();
+
 	}
 
 	@POST
