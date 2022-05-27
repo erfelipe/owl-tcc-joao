@@ -45,22 +45,40 @@ public class Rotas {
 //		ElementosOWL elementos = new ElementosOWL(new JSONObject(ontologia));
 //		String resp = elementos.validaOWL();
 		String resp = Boolean.TRUE.toString();
-
-		return Response.status(Status.OK).entity(resp).build();
-
+		return Response.status(Status.ACCEPTED).entity(resp).build();
 	}
 
 	@POST
 	@Path("valid2")
 	@Produces(MediaType.TEXT_PLAIN)
 	@Consumes(MediaType.TEXT_PLAIN)
-	public Response validacao2(String ontologia) throws JSONException, Exception {
-//		ElementosOWL elementos = new ElementosOWL(new JSONObject(ontologia));
-//		String resp = elementos.validaOWL();
+	public Response validacao2(String ontologia) throws Exception {
 		String resp = Boolean.TRUE.toString();
 		return Response.status(Status.ACCEPTED).entity(resp).build();
 	}
 
+	@POST
+	@Path("valid3")
+	@Produces(MediaType.TEXT_PLAIN)
+	@Consumes(MediaType.TEXT_PLAIN)
+	public Response validacao3(String txt) throws Exception {
+		String resp = "Teste com o post ! " + txt;
+		return Response.status(Status.OK).entity(resp).build();
+	}
+	
+	@POST
+	@Path("valid4")
+	@Produces(MediaType.TEXT_PLAIN)
+	@Consumes(MediaType.TEXT_PLAIN)
+	public Response validacao4(String txt) {
+		try {
+			String resp = "Teste com o post ! " + txt;
+			return Response.status(Status.ACCEPTED).entity(resp).build();
+		} catch (Exception e) {
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
+	}
+		
 	@POST
 	@Path("format")
 	@Produces(MediaType.TEXT_PLAIN)
