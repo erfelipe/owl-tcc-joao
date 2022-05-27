@@ -35,4 +35,4 @@ local.properties
 
 .DS_Store
 .vscode
-.war
+*.war
