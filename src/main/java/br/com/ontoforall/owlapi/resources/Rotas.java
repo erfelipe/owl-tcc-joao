@@ -1,6 +1,7 @@
 package br.com.ontoforall.owlapi.resources;
 
 import br.com.ontoforall.owlapi.model.OntologyExporter;
+import br.com.ontoforall.owlapi.model.AxiomValidator;
 import br.com.ontoforall.owlapi.model.Info;
 
 import javax.ws.rs.Consumes;
@@ -42,9 +43,10 @@ public class Rotas {
 	@Produces(MediaType.TEXT_PLAIN)
 	@Consumes(MediaType.TEXT_PLAIN)
 	public Response validacao(String ontologia) throws JSONException, Exception {
-//		ElementosOWL elementos = new ElementosOWL(new JSONObject(ontologia));
-//		String resp = elementos.validaOWL();
-		String resp = Boolean.TRUE.toString();
+		System.out.print(ontologia);
+		AxiomValidator validator = new AxiomValidator(new JSONObject(ontologia));
+		String resp = validator.validAxioms();
+//		String resp = Boolean.TRUE.toString();
 		return Response.status(Status.ACCEPTED).entity(resp).build();
 	}
 
