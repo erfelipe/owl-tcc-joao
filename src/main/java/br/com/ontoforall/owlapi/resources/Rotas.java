@@ -46,8 +46,8 @@ public class Rotas {
 		System.out.print(ontologia);
 		AxiomValidator validator = new AxiomValidator(new JSONObject(ontologia));
 		String resp = validator.validAxioms();
-//		String resp = Boolean.TRUE.toString();
-		return Response.status(Status.ACCEPTED).entity(resp).build();
+//		return Response.status(Status.ACCEPTED).entity(resp).build();
+		return Response.status(Status.ACCEPTED).header("Access-Control-Allow-Origin", "*").entity(resp).build();
 	}
 
 	@POST
@@ -88,7 +88,8 @@ public class Rotas {
 	public Response formata(String ontology) throws JSONException, Exception {
 		OntologyExporter ont = new OntologyExporter(new JSONObject(ontology));
 		String resp = ont.exportOntology();
-		return Response.status(Status.ACCEPTED).entity(resp).build();
+//		return Response.status(Status.ACCEPTED).entity(resp).build();
+		return Response.status(Status.ACCEPTED).header("Access-Control-Allow-Origin", "*").entity(resp).build();
 	}
 
 	/*
