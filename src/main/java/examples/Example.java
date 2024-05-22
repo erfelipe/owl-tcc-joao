@@ -1,7 +1,5 @@
 package examples;
 
-import br.com.ontoforall.owlapi.model.ElementosOWL;
-
 public class Example {
 
 	public static void main(String[] args) {
