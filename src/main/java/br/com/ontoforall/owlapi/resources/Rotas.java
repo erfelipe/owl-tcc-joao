@@ -3,6 +3,7 @@ package br.com.ontoforall.owlapi.resources;
 import br.com.ontoforall.owlapi.model.OntologyExporter;
 import br.com.ontoforall.owlapi.model.AxiomValidator;
 import br.com.ontoforall.owlapi.model.Info;
+import br.com.ontoforall.owlapi.model.Manager;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -14,6 +15,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
 @Path("ontology")
 public class Rotas {
@@ -38,6 +40,15 @@ public class Rotas {
 		return Response.status(Status.ACCEPTED).entity(info.getInfo()).build();
 	}
 
+	@GET
+	@Path("getclasses")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response pizzaQuantAxioms() throws OWLOntologyCreationException {
+		Manager manager = new Manager();
+		return Response.status(Status.ACCEPTED).entity(manager.getClasses()).build();
+		
+	}
+	
 	@POST
 	@Path("valid")
 	@Produces(MediaType.TEXT_PLAIN)
